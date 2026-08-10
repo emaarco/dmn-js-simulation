@@ -32,9 +32,6 @@
   "files": [
     "dist"
   ],
-  "engines": {
-    "node": ">=22"
-  },
   "scripts": {
     "build": "rollup -c",
     "test": "vitest run",
