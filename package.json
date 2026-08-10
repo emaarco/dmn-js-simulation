@@ -7,7 +7,7 @@
   "license": "MIT",
   "author": "Marco Schäck (https://github.com/emaarco)",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "workspaces": [
     "packages/dmn-js-simulation",
