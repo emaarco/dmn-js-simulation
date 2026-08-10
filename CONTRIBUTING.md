@@ -52,7 +52,7 @@ npm test
 npm run build
 ```
 
-All of these run in CI on Node 20 and 22 (which also runs the Playwright E2E suite).
+All of these run in CI on Node 22 and 24 (Node 22 also runs the Playwright E2E suite).
 
 ## Reporting bugs / requesting features
 
