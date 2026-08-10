@@ -70,7 +70,7 @@
     "dependency-cruiser": "18.1.1",
     "dmn-moddle": "12.0.1",
     "inferno": "5.6.3",
-    "inferno-create-element": "5.6.3",
+    "inferno-create-element": "9.1.0",
     "jsdom": "29.1.1",
     "rollup": "4.62.4",
     "tslib": "2.8.1",
