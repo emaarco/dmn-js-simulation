@@ -3,7 +3,7 @@
              xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/"
              xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/"
              xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/"
-             id="Definitions_OutputOrder" name="OutputOrder" namespace="http://miragon.io/miravelo/service">
+             id="Definitions_OutputOrder" name="OutputOrder" namespace="https://emaarco.github.io/dmn-js-simulation/service">
   <inputData id="InputData_Kilometers" name="Kilometers Ridden">
     <variable id="Variable_Kilometers" name="Kilometers" typeRef="integer" />
   </inputData>

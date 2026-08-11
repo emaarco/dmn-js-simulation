@@ -3,7 +3,7 @@
              xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/"
              xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/"
              xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/"
-             id="Definitions_CreditScore" name="Credit Score Banding" namespace="http://miragon.io/miravelo/scoring">
+             id="Definitions_CreditScore" name="Credit Score Banding" namespace="https://emaarco.github.io/dmn-js-simulation/scoring">
   <inputData id="InputData_Score" name="Score">
     <variable id="Variable_Score" name="Score" typeRef="integer" />
   </inputData>

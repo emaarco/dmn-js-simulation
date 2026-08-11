@@ -3,7 +3,7 @@
              xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/"
              xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/"
              xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/"
-             id="Definitions_Unique" name="Unique" namespace="http://miragon.io/miravelo/membership">
+             id="Definitions_Unique" name="Unique" namespace="https://emaarco.github.io/dmn-js-simulation/membership">
   <inputData id="InputData_AnnualSpend" name="Annual Spend (€)">
     <variable id="Variable_AnnualSpend" name="AnnualSpend" typeRef="integer" />
   </inputData>

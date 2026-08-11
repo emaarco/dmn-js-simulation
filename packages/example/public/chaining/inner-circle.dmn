@@ -4,7 +4,7 @@
              xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/"
              xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/"
              id="Definitions_InnerCircle" name="Inner-Circle Eligibility"
-             namespace="http://miragon.io/miravelo/membership">
+             namespace="https://emaarco.github.io/dmn-js-simulation/membership">
   <inputData id="InputData_Age" name="Age">
     <variable id="Var_Age" name="Age" typeRef="integer" />
   </inputData>

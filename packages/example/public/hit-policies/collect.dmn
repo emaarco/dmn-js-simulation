@@ -3,7 +3,7 @@
              xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/"
              xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/"
              xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/"
-             id="Definitions_Collect" name="Collect" namespace="http://miragon.io/miravelo/membership">
+             id="Definitions_Collect" name="Collect" namespace="https://emaarco.github.io/dmn-js-simulation/membership">
   <inputData id="InputData_MonthlyRate" name="Monthly Rate (€)">
     <variable id="Variable_MonthlyRate" name="MonthlyRate" typeRef="integer" />
   </inputData>
