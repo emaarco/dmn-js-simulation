@@ -1,8 +1,7 @@
 /**
  * Shareable links: encode the current DMN XML into the URL hash so a link opens
  * the exact model. The XML is compressed (`deflate-raw`, browser-native — no CDN,
- * GDPR-friendly) and stored URL-safe Base64 behind `#dmn=`. Idea borrowed from
- * the Miragon Wardley-maps modeler (apps/webapp/src/share.ts).
+ * GDPR-friendly) and stored URL-safe Base64 behind `#dmn=`.
  */
 
 const HASH_PREFIX = '#dmn='

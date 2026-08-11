@@ -3,7 +3,7 @@
              xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/"
              xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/"
              xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/"
-             id="Definitions_Any" name="Any" namespace="http://miragon.io/miravelo/shop">
+             id="Definitions_Any" name="Any" namespace="https://emaarco.github.io/dmn-js-simulation/shop">
   <inputData id="InputData_Age" name="Age">
     <variable id="Variable_Age" name="Age" typeRef="integer" />
   </inputData>

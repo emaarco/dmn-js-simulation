@@ -1,9 +1,40 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Miragon">
-  <rect width="512" height="512" rx="112" fill="#335de5" />
-  <g transform="translate(66 196.9) scale(1.31908)">
-    <path
-      fill="#00e676"
-      d="M0,89.63l220.2-14.78c11.65-.78,23.38-2.66,33.31-5.14s22.92-8.94,29.16-19.41c3.65-6.12,5.09-13.73,5.38-18.91,.27-4.94-.99-10.2-2.54-13.33-2.76-5.55-6.11-8.42-8.55-10.26-2.45-1.84-7.55-5.77-18.08-7.35-10.53-1.58-29.62,1.2-44.31,5.84C199.87,10.92,0,89.63,0,89.63Z"
-    />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024" role="img" aria-label="DMN Simulation">
+  <!--
+    Entscheidungstabelle mit Start-Dreieck: die Simulation laeuft ueber die Regeln.
+    Schwesterzeichen zu icon-dmn.svg, das statt des Dreiecks einen Ergebnisknoten hat.
+
+    ZUM ANPASSEN:
+      Hintergrundfarbe ... fill am rect id="bg"                  (aktuell #3A2B9C)
+      Eckenradius ........ rx / ry am rect id="bg"               (0 = eckig, 224 = Squircle)
+      Farbe .............. die drei stop-color unten
+      Strichstaerke ...... stroke-width an der Gruppe id="glyph" (aktuell 52)
+      Form ............... die Pfade in der Gruppe id="glyph"
+
+    Raster wie die uebrigen Icons: optische Mitte 512 / 512.
+    Der Verlauf nutzt gradientUnits="userSpaceOnUse". Nicht auf objectBoundingBox
+    umstellen: exakt waagerechte Pfade haetten dann eine Bounding-Box der Hoehe 0
+    und verschwinden in manchen Renderern.
+  -->
+  <defs>
+    <linearGradient id="glyphGrad" gradientUnits="userSpaceOnUse" x1="512" y1="260" x2="512" y2="770">
+      <stop offset="0"    stop-color="#FFFFFF"/>
+      <stop offset="0.55" stop-color="#FDFCFB"/>
+      <stop offset="1"    stop-color="#E9E6E3"/>
+    </linearGradient>
+    <filter id="soft" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#160D4A" flood-opacity="0.32"/>
+    </filter>
+  </defs>
+
+  <rect id="bg" x="0" y="0" width="1024" height="1024" rx="0" ry="0" fill="#3A2B9C"/>
+
+  <g id="glyph" filter="url(#soft)"
+     fill="url(#glyphGrad)" stroke="url(#glyphGrad)"
+     stroke-width="52" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="184" y="348" width="416" height="328" rx="42" fill="none"/>
+    <path fill="none" d="M 392 348 L 392 676"/>
+    <path fill="none" d="M 184 457 L 600 457"/>
+    <path fill="none" d="M 184 566 L 600 566"/>
+    <path d="M 700 428 L 838 512 L 700 596 Z" stroke-width="48"/>
   </g>
 </svg>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/"
-             id="Definitions_First" name="First" namespace="http://miragon.io/miravelo/shop">
+             id="Definitions_First" name="First" namespace="https://emaarco.github.io/dmn-js-simulation/shop">
   <decision id="Decision_Discount" name="Accessory Bundle Discount">
     <decisionTable id="DT_First" hitPolicy="FIRST">
       <input id="in_total" label="Order Total (€)">

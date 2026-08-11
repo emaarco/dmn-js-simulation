@@ -3,7 +3,7 @@
              xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/"
              xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/"
              xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/"
-             id="Definitions_Priority" name="Priority" namespace="http://miragon.io/miravelo/bike-leasing">
+             id="Definitions_Priority" name="Priority" namespace="https://emaarco.github.io/dmn-js-simulation/bike-leasing">
   <inputData id="InputData_Score" name="Credit Score">
     <variable id="Variable_Score" name="Score" typeRef="integer" />
   </inputData>

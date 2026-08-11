@@ -8,5 +8,5 @@ packages/example/playwright-report
 packages/example/test-results
 **/*.dmn
 
-# Vendored verbatim from Miragon/corporate-identity — never hand-edit.
+# Vendored design-token output — generated, never hand-edit.
 **/cd-tokens.generated.css

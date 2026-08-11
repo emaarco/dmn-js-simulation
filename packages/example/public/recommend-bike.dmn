@@ -5,7 +5,7 @@
              xmlns:di="http://www.omg.org/spec/DMN/20180521/DI/"
              id="Definitions_RecommendBike"
              name="Recommend Bike"
-             namespace="http://miragon.io/miravelo/shop">
+             namespace="https://emaarco.github.io/dmn-js-simulation/shop">
 
   <inputData id="InputData_Terrain" name="Terrain">
     <variable id="Variable_Terrain" name="Terrain" typeRef="string" />
