@@ -45,7 +45,7 @@
   },
   "peerDependencies": {
     "diagram-js": ">=15",
-    "dmn-js": ">=17",
+    "dmn-js": "^17.10.2",
     "inferno": ">=5.6 <6"
   },
   "peerDependenciesMeta": {
@@ -63,16 +63,16 @@
     "@rollup/plugin-commonjs": "29.0.3",
     "@rollup/plugin-node-resolve": "16.0.3",
     "@rollup/plugin-typescript": "12.3.0",
-    "@types/node": "26.2.0",
+    "@types/node": "26.3.0",
     "dependency-cruiser": "18.2.0",
-    "dmn-moddle": "12.0.1",
+    "dmn-moddle": "12.1.0",
     "inferno": "5.6.3",
     "inferno-create-element": "5.6.3",
     "jsdom": "30.0.1",
-    "rollup": "4.62.4",
+    "rollup": "4.63.0",
     "tslib": "2.8.1",
     "typescript": "5.7.3",
-    "vitest": "4.1.10"
+    "vitest": "4.1.11"
   },
   "repository": {
     "type": "git",
