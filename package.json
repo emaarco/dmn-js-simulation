@@ -30,8 +30,8 @@
     "@eslint/js": "10.0.1",
     "eslint": "10.9.1",
     "eslint-config-prettier": "10.1.8",
-    "knip": "6.32.3",
+    "knip": "6.34.0",
     "prettier": "3.9.6",
-    "typescript-eslint": "8.68.0"
+    "typescript-eslint": "8.69.0"
   }
 }
