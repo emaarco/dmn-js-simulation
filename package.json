@@ -19,7 +19,7 @@
     "test": "npm run test --workspaces --if-present",
     "test:e2e": "npm run test:e2e -w @emaarco/dmn-js-simulation-example --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "lint": "eslint .",
+    "lint": "oxlint",
     "lint:deps": "npm run lint:deps -w @emaarco/dmn-js-simulation",
     "knip": "knip",
     "knip:fix": "knip --fix",
@@ -27,11 +27,8 @@
     "format:check": "prettier --check ."
   },
   "devDependencies": {
-    "@eslint/js": "10.0.1",
-    "eslint": "10.10.0",
-    "eslint-config-prettier": "10.1.8",
     "knip": "6.35.1",
-    "prettier": "3.9.6",
-    "typescript-eslint": "8.70.0"
+    "oxlint": "1.82.0",
+    "prettier": "3.9.6"
   }
 }
