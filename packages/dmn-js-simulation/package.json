@@ -63,7 +63,7 @@
     "@rollup/plugin-commonjs": "29.0.3",
     "@rollup/plugin-node-resolve": "16.0.3",
     "@rollup/plugin-typescript": "12.3.0",
-    "@types/node": "26.4.1",
+    "@types/node": "26.5.0",
     "dependency-cruiser": "18.2.0",
     "dmn-moddle": "12.1.0",
     "inferno": "5.6.3",
