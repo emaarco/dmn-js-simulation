@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/emaarco/dmn-js-simulation/compare/v0.3.0...v0.3.1) (2026-09-21)
+
+
+### Bug Fixes
+
+* **deps:** move bundled feelin to devDependencies ([#50](https://github.com/emaarco/dmn-js-simulation/issues/50)) ([795275b](https://github.com/emaarco/dmn-js-simulation/commit/795275b810598fe559543d534b5c63eeb08da1af))
+
 ## [0.3.0](https://github.com/emaarco/dmn-js-simulation/compare/v0.2.0...v0.3.0) (2026-09-21)
 
 
