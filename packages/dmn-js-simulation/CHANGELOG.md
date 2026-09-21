@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/emaarco/dmn-js-simulation/compare/v0.2.0...v0.3.0) (2026-09-21)
+
+
+### Features
+
+* allow empty (null) input values in simulation ([#46](https://github.com/emaarco/dmn-js-simulation/issues/46)) ([5c4d90a](https://github.com/emaarco/dmn-js-simulation/commit/5c4d90ae730b1c2879716956f3e2276159d9c705))
+
 ## [0.2.0](https://github.com/emaarco/dmn-js-simulation/compare/v0.1.0...v0.2.0) (2026-08-07)
 
 
