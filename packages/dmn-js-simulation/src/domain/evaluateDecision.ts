@@ -21,13 +21,13 @@ export interface EvaluationResult extends HitPolicyResult {
 
 /**
  * Whether an input cell matches a value. An empty cell or a dash always matches
- * (DMN "any"); a concrete test against a missing value never matches.
+ * (DMN "any"); a missing value is tested as FEEL `null`, so only tests that
+ * accept `null` (e.g. `null`) match it.
  */
 function inputCellMatches(cellText: string, value: unknown): boolean {
   const text = (cellText || '').trim()
   if (text === '' || text === '-') return true
-  if (value === undefined || value === null) return false
-  return evaluateUnaryTest(text, value)
+  return evaluateUnaryTest(text, value ?? null)
 }
 
 /** Evaluate every output cell of a rule into an object keyed by output name. */

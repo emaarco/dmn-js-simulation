@@ -27,7 +27,16 @@ test('renders the simulation form above the decision table', async ({ page }) =>
   await expect(page.locator('.dmn-sim')).toBeVisible()
   // Recommend Bike has two inputs: Terrain (dropdown) + Budget (number).
   await expect(page.locator('.dmn-sim-field')).toHaveCount(2)
-  await expect(page.locator('.dmn-sim-run')).toBeDisabled()
+  await expect(page.locator('.dmn-sim-run')).toBeEnabled()
+})
+
+test('simulates with an empty input as null', async ({ page }) => {
+  // Terrain = Gravel, Budget left empty → every rule tests the budget, so none fires.
+  await page.locator('.dmn-sim-field').nth(0).locator('select').selectOption('Gravel')
+  await page.locator('.dmn-sim-run').click()
+
+  await expect(page.locator('.dmn-sim-result')).toContainText('no matching rule')
+  await expect(page.locator('tr.dmn-sim-match')).toHaveCount(0)
 })
 
 test('simulates a FIRST decision and highlights the matched rule', async ({ page }) => {
@@ -118,7 +127,6 @@ test('reset clears inputs, result and highlight', async ({ page }) => {
   await page.locator('.dmn-sim-reset').click()
   await expect(page.locator('.dmn-sim-result')).toHaveCount(0)
   await expect(page.locator('tr.dmn-sim-match')).toHaveCount(0)
-  await expect(page.locator('.dmn-sim-run')).toBeDisabled()
 })
 
 test('shares the current model via a URL hash that reopens it', async ({ page, context }) => {

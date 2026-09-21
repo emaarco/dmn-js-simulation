@@ -105,19 +105,9 @@ export class SimulationStore {
     this.emit()
   }
 
-  /** Only runnable once every input has a concrete value. */
-  isComplete(): boolean {
-    return (
-      !!this.model &&
-      this.model.inputs.length > 0 &&
-      this.values.length === this.model.inputs.length &&
-      this.values.every(v => v !== '' && v !== null && v !== undefined)
-    )
-  }
-
-  /** Evaluate the table against the current inputs and store the result. */
+  /** Evaluate the table against the current inputs (empty ones as `null`) and store the result. */
   run(): EvaluationResult | null {
-    if (!this.model || !this.isComplete()) return null
+    if (!this.model) return null
     this.result = evaluateDecision(this.model, this.values)
     this.resultIsLocal = true
     this.emit()

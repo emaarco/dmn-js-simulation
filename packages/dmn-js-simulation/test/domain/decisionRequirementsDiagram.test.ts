@@ -44,6 +44,39 @@ describe('evaluateDecisionRequirementsDiagram', () => {
     expect(result.results.B.value).toBe(11)
   })
 
+  it('passes an empty input data as null into a dependent decision table', () => {
+    const model: DecisionRequirementsDiagramModel = {
+      inputData: [{ id: 'InputData_Age', name: 'Age', label: 'Age', typeRef: 'integer' }],
+      decisions: [
+        {
+          id: 'Group',
+          name: 'Group',
+          variableName: 'Group',
+          requiredDecisionIds: [],
+          requiredInputIds: ['InputData_Age'],
+          logic: {
+            kind: 'decisionTable',
+            model: {
+              decisionId: 'Group',
+              decisionName: 'Group',
+              hitPolicy: 'FIRST',
+              inputs: [{ id: 'i', label: 'Age', expression: 'Age', typeRef: 'integer', options: [] }],
+              outputs: [{ id: 'o', name: 'Group', label: 'Group', typeRef: 'string', priorityValues: [] }],
+              rules: [
+                { id: 'r1', inputEntries: ['>= 18'], outputEntries: ['"adult"'] },
+                { id: 'r2', inputEntries: ['null'], outputEntries: ['"unknown"'] },
+              ],
+            },
+          },
+        },
+      ],
+    }
+    const result = evaluateDecisionRequirementsDiagram(model, { InputData_Age: '' })
+    expect(result.results.Group.skipped).toBeUndefined()
+    expect(result.results.Group.table?.matchedRuleIndices).toEqual([1])
+    expect(result.results.Group.value).toBe('unknown')
+  })
+
   it('marks decisions in a cycle as skipped instead of looping', () => {
     const cyclic: DecisionRequirementsDiagramModel = {
       inputData: [],

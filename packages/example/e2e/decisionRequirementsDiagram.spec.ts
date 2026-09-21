@@ -16,7 +16,7 @@ test.beforeEach(async ({ page }) => {
 
 test('renders a DRD input panel with a field per input data', async ({ page }) => {
   await expect(page.locator('.dmn-sim-decision-requirements-diagram-panel .dmn-sim-field')).toHaveCount(2)
-  await expect(page.locator('.dmn-sim-run')).toBeDisabled()
+  await expect(page.locator('.dmn-sim-run')).toBeEnabled()
 })
 
 test('centers the DRD diagram in the viewport (not over-zoomed)', async ({ page }) => {
