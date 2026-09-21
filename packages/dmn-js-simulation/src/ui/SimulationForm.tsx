@@ -181,7 +181,6 @@ export class SimulationFormComponent extends Component<Record<string, never>, { 
 
     const values = this.store.getValues()
     const result = this.store.getResult()
-    const complete = this.store.isComplete()
 
     return createElement(
       'div',
@@ -204,8 +203,7 @@ export class SimulationFormComponent extends Component<Record<string, never>, { 
             // block running the simulation (e.g. an out-of-range value → a miss).
             type: 'button',
             className: 'dmn-sim-run',
-            disabled: !complete,
-            title: complete ? 'Run the simulation' : 'Fill in every input first',
+            title: 'Run the simulation',
             onClick: this.onRun,
           },
           'Simulate',

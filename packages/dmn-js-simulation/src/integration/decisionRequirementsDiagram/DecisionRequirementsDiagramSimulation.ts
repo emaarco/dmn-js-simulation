@@ -67,7 +67,6 @@ export class DecisionRequirementsDiagramSimulation {
 
   private panel?: HTMLElement
   private fieldsHost?: HTMLElement
-  private runButton?: HTMLButtonElement
   /** Per-input-data accessor: read the current value, or reset the control(s). */
   private readonly inputs = new Map<string, { read: () => string; reset: () => void }>()
 
@@ -139,21 +138,19 @@ export class DecisionRequirementsDiagramSimulation {
     this.panel.appendChild(this.fieldsHost)
 
     const actions = createDiv('dmn-sim-decision-requirements-diagram-actions')
-    this.runButton = document.createElement('button')
-    this.runButton.type = 'button'
-    this.runButton.className = 'dmn-sim-run'
-    this.runButton.textContent = 'Simulate'
-    this.runButton.addEventListener('click', () => this.run())
+    const runButton = document.createElement('button')
+    runButton.type = 'button'
+    runButton.className = 'dmn-sim-run'
+    runButton.textContent = 'Simulate'
+    runButton.addEventListener('click', () => this.run())
     const resetButton = document.createElement('button')
     resetButton.type = 'button'
     resetButton.className = 'dmn-sim-reset'
     resetButton.textContent = 'Reset'
     resetButton.addEventListener('click', () => this.reset())
-    actions.appendChild(this.runButton)
+    actions.appendChild(runButton)
     actions.appendChild(resetButton)
     this.panel.appendChild(actions)
-
-    this.syncRunState()
   }
 
   /** One field control: a single input, or a duration composer (number + unit). */
@@ -174,8 +171,6 @@ export class DecisionRequirementsDiagramSimulation {
         unit.appendChild(opt)
       }
       unit.value = DEFAULT_DURATION_UNIT
-      amount.addEventListener('input', () => this.syncRunState())
-      unit.addEventListener('change', () => this.syncRunState())
       wrapper.appendChild(amount)
       wrapper.appendChild(unit)
       return {
@@ -191,14 +186,7 @@ export class DecisionRequirementsDiagramSimulation {
     control.className = 'dmn-sim-input'
     control.type = htmlInputType(typeRef)
     control.placeholder = typeRef
-    control.addEventListener('input', () => this.syncRunState())
     return { node: control, read: () => control.value, reset: () => (control.value = '') }
-  }
-
-  private syncRunState(): void {
-    if (!this.runButton) return
-    const complete = [...this.inputs.values()].every(control => control.read().trim() !== '')
-    this.runButton.disabled = !complete
   }
 
   private collectValues(): Record<string, RawValue> {
@@ -238,7 +226,6 @@ export class DecisionRequirementsDiagramSimulation {
   private reset(): void {
     for (const control of this.inputs.values()) control.reset()
     this.clearResult()
-    this.syncRunState()
   }
 
   private clearResult(): void {

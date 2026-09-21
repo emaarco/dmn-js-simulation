@@ -18,19 +18,17 @@ function model(): DecisionModel {
 }
 
 describe('SimulationStore', () => {
-  it('initialises empty values from the model and is not complete', () => {
+  it('initialises empty values from the model', () => {
     const store = new SimulationStore()
     store.setModel(model())
     expect(store.getValues()).toEqual([''])
-    expect(store.isComplete()).toBe(false)
     expect(store.getResult()).toBeNull()
   })
 
-  it('becomes complete once every input has a value and evaluates on run', () => {
+  it('evaluates the entered values on run', () => {
     const store = new SimulationStore()
     store.setModel(model())
     store.setValue(0, 'Winter')
-    expect(store.isComplete()).toBe(true)
     const result = store.run()
     expect(result?.outputs).toEqual([{ Dish: 'Roastbeef' }])
     expect(store.getResult()?.reportedRuleIndices).toEqual([1])
@@ -105,10 +103,15 @@ describe('SimulationStore', () => {
     expect(store.getModel()).not.toBeNull()
   })
 
-  it('does not run when incomplete', () => {
+  it('runs with empty inputs and reports no matching rule', () => {
     const store = new SimulationStore()
     store.setModel(model())
-    expect(store.run()).toBeNull()
+    expect(store.run()?.matchedRuleIndices).toEqual([])
+    expect(store.isLocalRun()).toBe(true)
+  })
+
+  it('does not run without a model', () => {
+    expect(new SimulationStore().run()).toBeNull()
   })
 
   it('notifies subscribers on every change and stops after unsubscribe', () => {
