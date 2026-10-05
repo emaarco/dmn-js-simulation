@@ -5,7 +5,7 @@
  * of the code never touches the engine directly.
  */
 
-import { unaryTest, evaluate } from 'feelin'
+import { unaryTest, evaluate, FeelDate, FeelDateTime, FeelDuration, FeelTime } from 'feelin'
 import { isNumericType } from './model'
 
 /** A raw form value before it is coerced to its DMN type. */
@@ -71,4 +71,14 @@ export function evaluateExpression(text: string, context: Record<string, unknown
   } catch {
     return null
   }
+}
+
+/** The ISO 8601 form of a FEEL temporal (date, time, date and time, duration), or null for any other value. */
+export function temporalToIso(value: unknown): string | null {
+  const isTemporal =
+    value instanceof FeelDate ||
+    value instanceof FeelDateTime ||
+    value instanceof FeelTime ||
+    value instanceof FeelDuration
+  return isTemporal ? value.toString() : null
 }

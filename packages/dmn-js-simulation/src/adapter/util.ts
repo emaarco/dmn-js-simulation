@@ -2,7 +2,7 @@
  * Small parsing helpers shared by the DMN adapters (XML and moddle).
  */
 
-import { evaluateExpression } from '../domain/feel'
+import { evaluateExpression, temporalToIso } from '../domain/feel'
 import { isNumericType } from '../domain/model'
 
 /** Split a FEEL `outputValues` list (`"a","b","c"`) into ordered bare values. */
@@ -38,16 +38,16 @@ interface Endpoint {
 /** A comparable sort key: numbers as-is, temporals as epoch millis. */
 function comparableKey(value: unknown): number | null {
   if (typeof value === 'number' && Number.isFinite(value)) return value
-  const toMillis = (value as { toMillis?: unknown }).toMillis
-  if (typeof toMillis === 'function') return (value as { toMillis: () => number }).toMillis()
-  return null
+  const iso = temporalToIso(value)
+  if (iso === null) return null
+  const millis = Date.parse(iso)
+  return Number.isNaN(millis) ? null : millis
 }
 
 /** Format a bound back into the value the native input expects. */
 function formatBound(value: unknown, numeric: boolean): string | null {
   if (numeric) return typeof value === 'number' ? String(value) : null
-  const toISODate = (value as { toISODate?: unknown }).toISODate
-  return typeof toISODate === 'function' ? ((value as { toISODate: () => string }).toISODate() ?? null) : null
+  return temporalToIso(value)
 }
 
 /**
