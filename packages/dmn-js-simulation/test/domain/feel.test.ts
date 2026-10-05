@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { coerceValue, evaluateUnaryTest, evaluateExpression } from '../../src/domain/feel'
+import { coerceValue, evaluateUnaryTest, evaluateExpression, temporalToIso } from '../../src/domain/feel'
 
 describe('coerceValue', () => {
   it('coerces numeric types to numbers', () => {
@@ -28,11 +28,11 @@ describe('coerceValue', () => {
   })
 
   it('parses temporal typeRefs into real FEEL temporals', () => {
-    const date = coerceValue('2020-01-01', 'date') as { toISODate?: () => string }
-    expect(date?.toISODate?.()).toBe('2020-01-01')
+    const date = coerceValue('2020-01-01', 'date')
+    expect(temporalToIso(date)).toBe('2020-01-01')
 
-    const dateTime = coerceValue('2020-01-01T10:00:00', 'dateTime') as { toISO?: () => string }
-    expect(typeof dateTime?.toISO?.()).toBe('string')
+    const dateTime = coerceValue('2020-01-01T10:00:00', 'dateTime')
+    expect(temporalToIso(dateTime)).toBe('2020-01-01T10:00:00')
 
     // A real FEEL temporal compares like-typed in a unary test.
     expect(evaluateUnaryTest('< date("2020-06-01")', date)).toBe(true)

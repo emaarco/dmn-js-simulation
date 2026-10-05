@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { formatValue } from '../../src/ui/formatValue'
+import { coerceValue } from '../../src/domain/feel'
 
 describe('formatValue', () => {
   it('renders primitives', () => {
@@ -16,9 +17,12 @@ describe('formatValue', () => {
     expect(formatValue(Infinity)).toBe('–')
   })
 
-  it('renders Date and Luxon-style temporals as ISO', () => {
+  it('renders Date and FEEL temporals as ISO', () => {
     expect(formatValue(new Date('2020-01-01T00:00:00Z'))).toBe('2020-01-01T00:00:00.000Z')
-    expect(formatValue({ toISO: () => '2020-01-01T00:00:00.000Z' })).toBe('2020-01-01T00:00:00.000Z')
+    expect(formatValue(coerceValue('2020-01-01', 'date'))).toBe('2020-01-01')
+    expect(formatValue(coerceValue('2020-01-01T10:00:00', 'dateTime'))).toBe('2020-01-01T10:00:00')
+    expect(formatValue(coerceValue('10:00:00', 'time'))).toBe('10:00:00')
+    expect(formatValue(coerceValue('P4D', 'dayTimeDuration'))).toBe('P4D')
   })
 
   it('never throws on functions, symbols or circular objects', () => {
