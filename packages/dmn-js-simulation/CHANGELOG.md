@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/emaarco/dmn-js-simulation/compare/v0.3.1...v0.3.2) (2026-10-05)
+
+
+### Bug Fixes
+
+* **deps:** migrate temporal handling to feelin 8 ([#57](https://github.com/emaarco/dmn-js-simulation/issues/57)) ([314e51c](https://github.com/emaarco/dmn-js-simulation/commit/314e51c3e1e761e33462bb50c711f47f2d04a5c8))
+
 ## [0.3.1](https://github.com/emaarco/dmn-js-simulation/compare/v0.3.0...v0.3.1) (2026-09-21)
 
 
