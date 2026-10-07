@@ -42,6 +42,17 @@ npm run test:e2e      # Playwright E2E against the example app
 - **Add tests.** Evaluation logic and hit policies are covered by Vitest unit
   tests; please extend them for any behavior change.
 
+## Betas
+
+To try a change in a real project before it is released, publish a beta: run the
+**Release** workflow manually on the branch and give a `beta_version` such as
+`0.4.0-beta.0` (the version the change will be released as, plus `-beta.N`). It
+lands on npm under the `beta` dist-tag with provenance. Nothing is committed,
+tagged or released, and `latest` stays where it is. A published version can never
+be overwritten or reused, so the next one is `-beta.1`. Tick `dry_run` as well to
+rehearse the publish. Install it with
+`npm i @emaarco/dmn-js-simulation@0.4.0-beta.0`.
+
 ## Before opening a PR
 
 ```bash
