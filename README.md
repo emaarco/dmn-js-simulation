@@ -77,7 +77,7 @@ happen to be working on your decisions:
 - **[miragon/bpmn-modeler](https://miragon.github.io/bpmn-modeler/)** — the
   simulation is built into the modeler, ready to use right where you design your
   BPMN & DMN diagrams.
-- **[emaarco/slidev-addon-dmn](https://github.com/emaarco/slidev-addon-dmn)** —
+- **[emaarco/slidev-addon-diagram-js](https://github.com/emaarco/slidev-addon-diagram-js)** —
   embed live, simulatable DMN tables straight into your [Slidev](https://sli.dev/)
   presentations.
 
