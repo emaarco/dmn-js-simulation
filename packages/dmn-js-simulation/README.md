@@ -6,7 +6,7 @@
 
 > Simulate DMN decision tables directly in a [dmn-js](https://github.com/bpmn-io/dmn-js) modeler — feed in concrete inputs and instantly see which rules match, which don't, and what the decision returns.
 
-![Simulating a DMN decision table — the input form runs the decision and highlights the matched rule](https://raw.githubusercontent.com/emaarco/dmn-js-simulation/main/docs/screenshots/simulation.png)
+![Drilling from the DRD into the Recommend Bike table, entering Road and 2500, then simulating highlights rule 3 and shows Model = Road Pro](https://raw.githubusercontent.com/emaarco/dmn-js-simulation/main/docs/screenshots/simulation.gif)
 
 ## The idea behind this project
 
