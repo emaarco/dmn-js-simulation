@@ -13,8 +13,8 @@ export {
 } from './domain/evaluateDecision'
 export { applyHitPolicy, type HitPolicyResult, type RuleOutput } from './domain/hitPolicy'
 export { coerceValue, evaluateUnaryTest, evaluateExpression } from './domain/feel'
+export { isNumericType } from './domain/dmnType'
 export {
-  isNumericType,
   type DecisionModel,
   type DmnInput,
   type DmnOutput,

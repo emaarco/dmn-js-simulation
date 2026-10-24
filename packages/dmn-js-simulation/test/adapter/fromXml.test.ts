@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { parseDecisionModelFromXml } from '../../src/adapter/fromXml'
-import { isNumericType } from '../../src/domain/model'
+import { isNumericType } from '../../src/domain/dmnType'
 
 const exampleXml = readFileSync(resolve(process.cwd(), 'test/fixtures/example.dmn'), 'utf-8')
 

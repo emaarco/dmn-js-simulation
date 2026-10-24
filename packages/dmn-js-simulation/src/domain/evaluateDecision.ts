@@ -41,9 +41,16 @@ function ruleOutput(model: DecisionModel, ruleIndex: number, context: Record<str
   return obj
 }
 
+/** Evaluate against raw form values, coercing each by its input's typeRef. */
 export function evaluateDecision(model: DecisionModel, rawValues: RawValue[]): EvaluationResult {
-  const values = model.inputs.map((input, i) => coerceValue(rawValues[i], input.typeRef))
+  return evaluateDecisionWithFeelValues(
+    model,
+    model.inputs.map((input, i) => coerceValue(rawValues[i], input.typeRef)),
+  )
+}
 
+/** Evaluate against values that are already FEEL values (`undefined` = missing). */
+export function evaluateDecisionWithFeelValues(model: DecisionModel, values: unknown[]): EvaluationResult {
   // Context for output expressions: bind each input by its FEEL expression and
   // by its label so literal *or* referencing outputs both resolve.
   const context: Record<string, unknown> = {}
