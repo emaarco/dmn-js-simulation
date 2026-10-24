@@ -1,10 +1,7 @@
 /**
- * Shareable links: encode the current DMN XML into the URL hash so a link opens
- * the exact model. The XML is compressed (`deflate-raw`, browser-native — no CDN,
- * GDPR-friendly) and stored URL-safe Base64 behind `#dmn=`.
+ * The `#dmn=` link encoding: DMN XML compressed with `deflate-raw` (browser-native
+ * — no CDN, GDPR-friendly) and stored as URL-safe Base64.
  */
-
-const HASH_PREFIX = '#dmn='
 
 /** Bytes → URL-safe Base64 (A–Z a–z 0–9 - _, no padding). */
 function toBase64Url(bytes: Uint8Array): string {
@@ -27,30 +24,13 @@ async function pipe(bytes: Uint8Array, stream: CompressionStream | Decompression
 }
 
 /** DMN XML → compressed, URL-safe Base64. */
-async function encodeXml(xml: string): Promise<string> {
+export async function encodeXml(xml: string): Promise<string> {
   const deflated = await pipe(new TextEncoder().encode(xml), new CompressionStream('deflate-raw'))
   return toBase64Url(deflated)
 }
 
 /** Compressed, URL-safe Base64 → DMN XML. */
-async function decodeXml(encoded: string): Promise<string> {
+export async function decodeXml(encoded: string): Promise<string> {
   const inflated = await pipe(fromBase64Url(encoded), new DecompressionStream('deflate-raw'))
   return new TextDecoder().decode(inflated)
-}
-
-/** The DMN XML encoded in the current URL hash, or null if there is none. */
-export async function readHashXml(): Promise<string | null> {
-  const hash = location.hash
-  if (!hash.startsWith(HASH_PREFIX)) return null
-  try {
-    return await decodeXml(hash.slice(HASH_PREFIX.length))
-  } catch {
-    return null
-  }
-}
-
-/** A full shareable URL that reopens the given DMN XML. */
-export async function buildShareUrl(xml: string): Promise<string> {
-  const encoded = await encodeXml(xml)
-  return `${location.origin}${location.pathname}${HASH_PREFIX}${encoded}`
 }
