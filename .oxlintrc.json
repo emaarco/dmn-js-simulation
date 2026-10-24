@@ -15,6 +15,28 @@
     "typescript/no-explicit-any": "off",
     "typescript/no-non-null-assertion": "off",
     "typescript/no-namespace": "off",
-    "no-unused-vars": ["error", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }]
-  }
+    "no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_"
+      }
+    ],
+    "max-classes-per-file": ["error", 1]
+  },
+  "jsPlugins": ["./tools/oxlint/architecture-plugin.mjs"],
+  "overrides": [
+    {
+      "files": ["packages/*/src/**"],
+      "rules": {
+        "architecture/no-top-level-functions": "error"
+      }
+    },
+    {
+      "files": ["**/utils/**", "**/*.d.ts"],
+      "rules": {
+        "architecture/no-top-level-functions": "off"
+      }
+    }
+  ]
 }

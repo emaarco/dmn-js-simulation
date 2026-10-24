@@ -2,15 +2,16 @@ import { describe, it, expect, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { DmnModdle } from 'dmn-moddle'
-import { definitionsToDecisionRequirementsDiagramModel, type ModdleElement } from '../../src/adapter/fromModdle'
+import { DmnModdleReader } from '../../src/adapter/DmnModdleReader'
+import type { ModdleElement } from '../../src/adapter/utils/moddle'
 import { DecisionRequirementsDiagramStore } from '../../src/simulation/DecisionRequirementsDiagramStore'
 import { ModelerBridge } from '../../src/simulation/ModelerBridge'
-import type { DecisionRequirementsDiagramModel } from '../../src/domain/decisionRequirementsDiagram'
+import type { DecisionRequirementsDiagramModel } from '../../src/domain/model'
 
 async function discountModel(): Promise<DecisionRequirementsDiagramModel> {
   const xml = readFileSync(resolve(process.cwd(), 'test/fixtures/chaining/discount.dmn'), 'utf-8')
   const { rootElement } = await new DmnModdle().fromXML(xml)
-  return definitionsToDecisionRequirementsDiagramModel(rootElement as ModdleElement)
+  return new DmnModdleReader().readDecisionRequirementsDiagram(rootElement as ModdleElement)
 }
 
 function singleDecisionModel(): DecisionRequirementsDiagramModel {

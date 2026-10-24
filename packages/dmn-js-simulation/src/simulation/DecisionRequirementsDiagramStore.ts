@@ -5,23 +5,20 @@
  * nothing about diagram-js or the DOM.
  */
 
-import type { RawValue } from './../domain/feel'
-import {
-  evaluateDecisionRequirementsDiagram,
-  type DecisionRequirementsDiagramEvaluationResult,
-  type DecisionRequirementsDiagramModel,
-} from './../domain/decisionRequirementsDiagram'
+import type { DecisionRequirementsDiagramModel, RawValue } from '../domain/model'
+import type { DecisionRequirementsDiagramEvaluationResult } from '../domain/results'
+import { DecisionRequirementsDiagramEvaluator } from '../domain/DecisionRequirementsDiagramEvaluator'
 import type { ModelerBridge } from './ModelerBridge'
+import { Observable } from './Observable'
 
-export type DecisionRequirementsDiagramListener = () => void
-
-export class DecisionRequirementsDiagramStore {
+export class DecisionRequirementsDiagramStore extends Observable {
   private model: DecisionRequirementsDiagramModel | null = null
   private values: Record<string, RawValue> = {}
   private result: DecisionRequirementsDiagramEvaluationResult | null = null
-  private readonly listeners = new Set<DecisionRequirementsDiagramListener>()
 
-  constructor(private readonly bridge: ModelerBridge | null) {}
+  constructor(private readonly bridge: ModelerBridge | null) {
+    super()
+  }
 
   getModel(): DecisionRequirementsDiagramModel | null {
     return this.model
@@ -44,25 +41,25 @@ export class DecisionRequirementsDiagramStore {
     this.model = model
     this.values = {}
     this.clearResult()
-    this.emit()
+    this.notify()
   }
 
   setValue(inputId: string, value: RawValue): void {
     this.values = { ...this.values, [inputId]: value }
-    this.emit()
+    this.notify()
   }
 
   run(): void {
     if (!this.model) return
-    this.result = evaluateDecisionRequirementsDiagram(this.model, this.values)
-    this.bridge?.setDecisionRequirementsDiagramResult(this.result)
-    this.emit()
+    this.result = new DecisionRequirementsDiagramEvaluator(this.model).evaluate(this.values)
+    this.bridge?.publish(this.result)
+    this.notify()
   }
 
   reset(): void {
     this.values = {}
     this.clearResult()
-    this.emit()
+    this.notify()
   }
 
   /** Decisions that produced something: a matching rule, or a non-null literal value. */
@@ -78,19 +75,8 @@ export class DecisionRequirementsDiagramStore {
     })
   }
 
-  subscribe(listener: DecisionRequirementsDiagramListener): () => void {
-    this.listeners.add(listener)
-    return () => {
-      this.listeners.delete(listener)
-    }
-  }
-
   private clearResult(): void {
     this.result = null
     this.bridge?.clear()
-  }
-
-  private emit(): void {
-    for (const listener of [...this.listeners]) listener()
   }
 }

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect } from 'vitest'
 import { TableSimulation } from '../../src/integration/table/TableSimulation'
-import { getModelerBridge } from '../../src/simulation/ModelerBridge'
+import { ModelerBridge } from '../../src/simulation/ModelerBridge'
 import { SimulationStore } from '../../src/simulation/SimulationStore'
 import type { DecisionModel } from '../../src/domain/model'
 
@@ -67,7 +67,7 @@ const drdResult = {
 describe('TableSimulation lifecycle', () => {
   it('unsubscribes from the shared bridge on destroy (no listener leak)', () => {
     const parent = {} // one Manager → one shared bridge
-    const bridge = getModelerBridge(parent)!
+    const bridge = ModelerBridge.forParent(parent)!
 
     const deadStore = new SimulationStore()
     deadStore.setModel(model())
@@ -81,7 +81,7 @@ describe('TableSimulation lifecycle', () => {
     deadBus.fire('diagram.destroy')
 
     // A DRD run reflects to every *live* listener only.
-    bridge.setDecisionRequirementsDiagramResult(drdResult as never)
+    bridge.publish(drdResult as never)
 
     expect(deadStore.getResult()).toBeNull() // destroyed → listener removed
     expect(liveStore.getResult()).not.toBeNull() // alive → still reflected
@@ -89,12 +89,12 @@ describe('TableSimulation lifecycle', () => {
 
   it('clears a reflected result when the bridge is cleared', () => {
     const parent = {}
-    const bridge = getModelerBridge(parent)!
+    const bridge = ModelerBridge.forParent(parent)!
     const store = new SimulationStore()
     store.setModel(model())
     makeTable(parent, store)
 
-    bridge.setDecisionRequirementsDiagramResult(drdResult as never)
+    bridge.publish(drdResult as never)
     expect(store.getResult()).not.toBeNull()
 
     bridge.clear()

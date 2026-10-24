@@ -289,11 +289,6 @@ tbody tr.dmn-sim-candidate td {
   margin-top: 1rem;
 }
 
-.dmn-sim-decision-requirements-diagram-empty {
-  font-size: 12px;
-  color: var(--dmn-sim-muted);
-}
-
 /* Fired decision shape highlight (marker class is set on the djs element). */
 .djs-element.dmn-sim-fired .djs-visual > :first-child {
   stroke: var(--dmn-sim-fired) !important;

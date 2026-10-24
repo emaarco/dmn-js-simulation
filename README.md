@@ -59,14 +59,14 @@ import { DmnSimulationTableModule, DmnSimulationDecisionRequirementsDiagramModul
 The framework-free evaluation core is exported too, for tests or headless use:
 
 ```ts
-import { parseDecisionModelFromXml, evaluateDecision } from '@emaarco/dmn-js-simulation'
+import { DmnXmlReader, DecisionTableEvaluator } from '@emaarco/dmn-js-simulation'
 
-const model = parseDecisionModelFromXml(dmnXml)
-const result = evaluateDecision(model, ['Fall', 8])
+const model = new DmnXmlReader().readDecisionTable(dmnXml)
+const result = new DecisionTableEvaluator(model).evaluate(['Fall', 8])
 // → { matchedRuleIndices, reportedRuleIndices, outputs, aggregation?, violation? }
 ```
 
-`evaluateDecisionRequirementsDiagram` + `definitionsToDecisionRequirementsDiagramModel` do the same for a whole DRD graph.
+`new DmnModdleReader().readDecisionRequirementsDiagram(definitions)` + `new DecisionRequirementsDiagramEvaluator(model).evaluate(inputValues)` do the same for a whole DRD graph.
 
 ## Where to try it
 

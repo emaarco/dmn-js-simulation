@@ -10,6 +10,10 @@
  *
  * The point of the boundary is that `domain/` stays a pure, framework-free
  * evaluation core that is testable in plain Node.
+ *
+ * Every layer keeps its building blocks in classes; stateless helpers live in a
+ * `utils/` folder of that layer. Utils are leaves: they only import other utils
+ * (within the layering above) and the domain's plain data types.
  */
 module.exports = {
   forbidden: [
@@ -47,6 +51,13 @@ module.exports = {
       severity: 'error',
       from: { path: '^src/ui/' },
       to: { path: '^src/(integration|adapter)/' },
+    },
+    {
+      name: 'utils-are-leaves',
+      comment: 'utils/ hold stateless helpers; they must not depend on the classes of any layer.',
+      severity: 'error',
+      from: { path: '^src/[^/]+/utils/' },
+      to: { path: '^src/', pathNot: ['^src/[^/]+/utils/', '^src/domain/(model|results)\\.ts$'] },
     },
   ],
   options: {
