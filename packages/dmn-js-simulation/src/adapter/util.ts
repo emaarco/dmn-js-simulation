@@ -3,7 +3,7 @@
  */
 
 import { evaluateExpression, temporalToIso } from '../domain/feel'
-import { isNumericType } from '../domain/model'
+import { classifyType } from '../domain/dmnType'
 
 /** Split a FEEL `outputValues` list (`"a","b","c"`) into ordered bare values. */
 export function parseOutputValueList(text: string | undefined | null): string[] {
@@ -60,8 +60,9 @@ function formatBound(value: unknown, numeric: boolean): string | null {
  * there would wrongly exclude valid inputs — that side is left unbounded.
  */
 export function collectColumnBounds(inputEntryTexts: string[], typeRef: string): { min?: string; max?: string } {
-  const numeric = isNumericType(typeRef)
-  const dateLike = (typeRef || '').toLowerCase() === 'date'
+  const kind = classifyType(typeRef)
+  const numeric = kind === 'number'
+  const dateLike = kind === 'date'
   if (!numeric && !dateLike) return {}
 
   const lowers: Endpoint[] = []

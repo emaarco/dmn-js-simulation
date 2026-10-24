@@ -13,15 +13,8 @@ import { Component } from 'inferno'
 import type { EvaluationResult } from '../domain/evaluateDecision'
 import type { SimulationStore } from '../simulation/SimulationStore'
 import { formatValue } from './formatValue'
-import { htmlInputType } from './inputType'
-import {
-  composeDuration,
-  DEFAULT_DURATION_UNIT,
-  DURATION_UNITS,
-  isDurationType,
-  parseDuration,
-  type DurationUnit,
-} from './duration'
+import { composeDuration, DURATION_UNITS, type DurationUnit } from './duration'
+import { describeControl, durationParts, selectOptions } from './inputControl'
 import type { DmnInput } from '../domain/model'
 
 /** The result line — output pills, aggregation, violation and reported rules. */
@@ -67,12 +60,6 @@ function ResultBar({ result }: { result: EvaluationResult }): any {
   )
 }
 
-/** The rule-derived options, plus a reflected value that isn't among them. */
-function selectOptions(options: string[], value: unknown): string[] {
-  const v = value == null ? '' : String(value)
-  return v !== '' && !options.includes(v) ? [v, ...options] : options
-}
-
 export class SimulationFormComponent extends Component<Record<string, never>, { tick: number }> {
   private readonly store: SimulationStore
   private unsubscribe?: () => void
@@ -98,11 +85,7 @@ export class SimulationFormComponent extends Component<Record<string, never>, { 
   }
 
   private durationUnit(index: number): DurationUnit {
-    return (
-      this.durationUnits.get(index) ??
-      parseDuration(String(this.store.getValues()[index] ?? ''))?.unit ??
-      DEFAULT_DURATION_UNIT
-    )
+    return this.durationUnits.get(index) ?? durationParts(this.store.getValues()[index]).unit
   }
 
   private readonly onDurationAmount = (index: number) => (event: Event) => {
@@ -114,28 +97,25 @@ export class SimulationFormComponent extends Component<Record<string, never>, { 
   private readonly onDurationUnit = (index: number) => (event: Event) => {
     const unit = (event.target as HTMLSelectElement).value as DurationUnit
     this.durationUnits.set(index, unit)
-    const amount = parseDuration(String(this.store.getValues()[index] ?? ''))?.amount ?? ''
+    const { amount } = durationParts(this.store.getValues()[index])
     this.store.setValue(index, composeDuration(amount, unit))
   }
 
   /** The input control for one column: dropdown, duration composer or field. */
   private renderControl(input: DmnInput, i: number, value: unknown): any {
-    if (input.options.length) {
+    const spec = describeControl(input)
+    if (spec.kind === 'select') {
       return createElement(
         'select',
         { className: 'dmn-sim-input', value: value ?? '', onChange: this.onChange(i) },
         createElement('option', { value: '' }, '–'),
-        // Include a reflected value that isn't one of the rule literals
-        // (e.g. an upstream decision's output) so the select can show it.
-        selectOptions(input.options, value).map(option =>
+        selectOptions(spec.options, value).map(option =>
           createElement('option', { value: option, key: option }, option),
         ),
       )
     }
-    if (isDurationType(input.typeRef)) {
-      const parsed = parseDuration(String(value ?? ''))
-      const amount = parsed?.amount ?? ''
-      const unit = parsed?.unit ?? this.durationUnit(i)
+    if (spec.kind === 'duration') {
+      const { amount, unit } = durationParts(value, this.durationUnit(i))
       return createElement(
         'span',
         { className: 'dmn-sim-duration' },
@@ -156,11 +136,10 @@ export class SimulationFormComponent extends Component<Record<string, never>, { 
     }
     return createElement('input', {
       className: 'dmn-sim-input',
-      type: htmlInputType(input.typeRef),
-      placeholder: input.typeRef,
-      // Native min/max guidance, only present for fully-bounded columns.
-      min: input.min,
-      max: input.max,
+      type: spec.htmlType,
+      placeholder: spec.placeholder,
+      min: spec.min,
+      max: spec.max,
       value: value ?? '',
       onInput: this.onChange(i),
     })

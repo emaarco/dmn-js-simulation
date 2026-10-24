@@ -11,7 +11,7 @@
 import type { DecisionModel } from './model'
 import type { RawValue } from './feel'
 import { coerceValue, evaluateExpression } from './feel'
-import { evaluateDecision, type EvaluationResult } from './evaluateDecision'
+import { evaluateDecisionWithFeelValues, type EvaluationResult } from './evaluateDecision'
 
 export interface DecisionRequirementsDiagramInputData {
   id: string
@@ -161,13 +161,12 @@ function evaluateDecisionNode(
 
   if (logic.kind === 'decisionTable') {
     // Resolve each table input from the context via its FEEL input expression.
-    const values: RawValue[] = logic.model.inputs.map(input => {
-      if (!input.expression) return undefined
-      const resolved = evaluateExpression(input.expression, context)
-      return resolved as RawValue
-    })
-    const table = evaluateDecision(logic.model, values)
-    return { decisionId: decision.id, value: decisionTableValue(logic.model, table), table, inputs: values }
+    const values = logic.model.inputs.map(input =>
+      input.expression ? (evaluateExpression(input.expression, context) ?? undefined) : undefined,
+    )
+    const table = evaluateDecisionWithFeelValues(logic.model, values)
+    const inputs = values as RawValue[]
+    return { decisionId: decision.id, value: decisionTableValue(logic.model, table), table, inputs }
   }
 
   if (logic.kind === 'literalExpression') {

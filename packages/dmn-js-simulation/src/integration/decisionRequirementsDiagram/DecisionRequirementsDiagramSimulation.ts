@@ -9,21 +9,11 @@
  */
 
 import { definitionsToDecisionRequirementsDiagramModel, type ModdleElement } from '../../adapter/fromModdle'
-import {
-  evaluateDecisionRequirementsDiagram,
-  type DecisionRequirementsDiagramModel,
-} from '../../domain/decisionRequirementsDiagram'
-import type { RawValue } from '../../domain/feel'
-import { getModelerBridge, type ModelerBridge } from '../../simulation/ModelerBridge'
+import { DecisionRequirementsDiagramStore } from '../../simulation/DecisionRequirementsDiagramStore'
+import { getModelerBridge } from '../../simulation/ModelerBridge'
 import { formatValue } from '../../ui/formatValue'
-import { htmlInputType } from '../../ui/inputType'
-import {
-  composeDuration,
-  DEFAULT_DURATION_UNIT,
-  DURATION_UNITS,
-  isDurationType,
-  type DurationUnit,
-} from '../../ui/duration'
+import { describeControl, type ControlInput } from '../../ui/inputControl'
+import { composeDuration, DEFAULT_DURATION_UNIT, DURATION_UNITS, type DurationUnit } from '../../ui/duration'
 
 interface EventBus {
   on(event: string, callback: (...args: unknown[]) => void): void
@@ -59,16 +49,13 @@ export class DecisionRequirementsDiagramSimulation {
   private readonly canvas: Canvas
   private readonly elementRegistry: ElementRegistry
   private readonly overlays: Overlays
-  private readonly bridge: ModelerBridge | null
+  private readonly store: DecisionRequirementsDiagramStore
 
   private readonly parent: { getDefinitions?: () => ModdleElement } | null
-  private model: DecisionRequirementsDiagramModel | null = null
   private markedIds: string[] = []
 
   private panel?: HTMLElement
-  private fieldsHost?: HTMLElement
-  /** Per-input-data accessor: read the current value, or reset the control(s). */
-  private readonly inputs = new Map<string, { read: () => string; reset: () => void }>()
+  private readonly controlResets: Array<() => void> = []
 
   constructor(
     eventBus: EventBus,
@@ -81,35 +68,33 @@ export class DecisionRequirementsDiagramSimulation {
     this.elementRegistry = elementRegistry
     this.overlays = overlays
     this.parent = injector.get('_parent', false)
-    this.bridge = getModelerBridge(this.parent)
+    this.store = new DecisionRequirementsDiagramStore(getModelerBridge(this.parent))
+    const unsubscribe = this.store.subscribe(() => this.showResult())
 
     const onImportDone = (): void => this.refresh()
     eventBus.on('import.done', onImportDone)
     eventBus.on('diagram.destroy', () => {
       eventBus.off('import.done', onImportDone)
-      this.clearResult()
+      this.store.setModel(null)
+      unsubscribe()
       this.panel?.remove()
       this.panel = undefined
-      this.inputs.clear()
+      this.controlResets.length = 0
     })
   }
 
   private refresh(): void {
     const definitions = this.parent?.getDefinitions?.()
-    this.model = definitions ? definitionsToDecisionRequirementsDiagramModel(definitions) : null
-    this.clearResult()
+    this.store.setModel(definitions ? definitionsToDecisionRequirementsDiagramModel(definitions) : null)
     this.render()
   }
 
   private render(): void {
-    // A lone decision is already fully covered by the decision-table simulation,
-    // so the DRD panel would only duplicate it. Only show it for a genuine graph
-    // — more than one decision to chain — with leaves to feed.
-    const isGraph = !!this.model && this.model.decisions.length > 1 && this.model.inputData.length > 0
-    if (!isGraph) {
+    const model = this.store.getModel()
+    if (!model || !this.store.isSimulatable()) {
       this.panel?.remove()
       this.panel = undefined
-      this.inputs.clear()
+      this.controlResets.length = 0
       return
     }
 
@@ -118,31 +103,33 @@ export class DecisionRequirementsDiagramSimulation {
       this.canvas.getContainer().appendChild(this.panel)
     }
     this.panel.innerHTML = ''
-    this.inputs.clear()
+    this.controlResets.length = 0
 
     const title = createDiv('dmn-sim-decision-requirements-diagram-title', 'Simulate DRD')
     this.panel.appendChild(title)
 
-    this.fieldsHost = createDiv('dmn-sim-decision-requirements-diagram-fields')
-    for (const input of this.model!.inputData) {
+    const fieldsHost = createDiv('dmn-sim-decision-requirements-diagram-fields')
+    for (const input of model.inputData) {
       const field = createDiv('dmn-sim-field')
       const label = document.createElement('span')
       label.className = 'dmn-sim-field-label'
       label.textContent = input.label
-      const control = this.buildControl(input.typeRef)
-      this.inputs.set(input.id, { read: control.read, reset: control.reset })
+      const control = this.buildControl(input)
+      control.node.addEventListener('input', () => this.store.setValue(input.id, control.read()))
+      control.node.addEventListener('change', () => this.store.setValue(input.id, control.read()))
+      this.controlResets.push(control.reset)
       field.appendChild(label)
       field.appendChild(control.node)
-      this.fieldsHost.appendChild(field)
+      fieldsHost.appendChild(field)
     }
-    this.panel.appendChild(this.fieldsHost)
+    this.panel.appendChild(fieldsHost)
 
     const actions = createDiv('dmn-sim-decision-requirements-diagram-actions')
     const runButton = document.createElement('button')
     runButton.type = 'button'
     runButton.className = 'dmn-sim-run'
     runButton.textContent = 'Simulate'
-    runButton.addEventListener('click', () => this.run())
+    runButton.addEventListener('click', () => this.store.run())
     const resetButton = document.createElement('button')
     resetButton.type = 'button'
     resetButton.className = 'dmn-sim-reset'
@@ -154,8 +141,20 @@ export class DecisionRequirementsDiagramSimulation {
   }
 
   /** One field control: a single input, or a duration composer (number + unit). */
-  private buildControl(typeRef: string): { node: HTMLElement; read: () => string; reset: () => void } {
-    if (isDurationType(typeRef)) {
+  private buildControl(input: ControlInput): { node: HTMLElement; read: () => string; reset: () => void } {
+    const spec = describeControl(input)
+    if (spec.kind === 'select') {
+      const select = document.createElement('select')
+      select.className = 'dmn-sim-input'
+      for (const option of ['', ...spec.options]) {
+        const opt = document.createElement('option')
+        opt.value = option
+        opt.textContent = option || '–'
+        select.appendChild(opt)
+      }
+      return { node: select, read: () => select.value, reset: () => (select.value = '') }
+    }
+    if (spec.kind === 'duration') {
       const wrapper = createDiv('dmn-sim-duration')
       const amount = document.createElement('input')
       amount.className = 'dmn-sim-input dmn-sim-duration-amount'
@@ -184,53 +183,32 @@ export class DecisionRequirementsDiagramSimulation {
     }
     const control = document.createElement('input')
     control.className = 'dmn-sim-input'
-    control.type = htmlInputType(typeRef)
-    control.placeholder = typeRef
+    control.type = spec.htmlType
+    control.placeholder = spec.placeholder
+    if (spec.min !== undefined) control.min = spec.min
+    if (spec.max !== undefined) control.max = spec.max
     return { node: control, read: () => control.value, reset: () => (control.value = '') }
   }
 
-  private collectValues(): Record<string, RawValue> {
-    const values: Record<string, RawValue> = {}
-    for (const [id, control] of this.inputs) values[id] = control.read()
-    return values
-  }
-
-  private run(): void {
-    if (!this.model) return
-    const result = evaluateDecisionRequirementsDiagram(this.model, this.collectValues())
-    this.clearMarkersAndOverlays()
-
-    for (const decision of this.model.decisions) {
-      const evaluation = result.results[decision.id]
-      if (!evaluation || evaluation.skipped) continue
-
-      const fired = evaluation.table
-        ? evaluation.table.matchedRuleIndices.length > 0
-        : evaluation.value !== null && evaluation.value !== undefined
-      if (!fired) continue
-
-      const element = this.findDecisionElement(decision.id)
-      if (element) {
-        this.canvas.addMarker(element, FIRED_MARKER)
-        this.markedIds.push(element.id)
-        this.overlays.add(element, OVERLAY_TYPE, {
-          position: { bottom: -6, left: 0 },
-          html: `<div class="dmn-sim-badge">${escapeHtml(formatValue(evaluation.value))}</div>`,
-        })
-      }
-    }
-
-    this.bridge?.setDecisionRequirementsDiagramResult(result)
-  }
-
   private reset(): void {
-    for (const control of this.inputs.values()) control.reset()
-    this.clearResult()
+    for (const reset of this.controlResets) reset()
+    this.store.reset()
   }
 
-  private clearResult(): void {
+  private showResult(): void {
     this.clearMarkersAndOverlays()
-    this.bridge?.clear()
+    const result = this.store.getResult()
+    if (!result) return
+    for (const decisionId of this.store.firedDecisionIds()) {
+      const element = this.findDecisionElement(decisionId)
+      if (!element) continue
+      this.canvas.addMarker(element, FIRED_MARKER)
+      this.markedIds.push(element.id)
+      this.overlays.add(element, OVERLAY_TYPE, {
+        position: { bottom: -6, left: 0 },
+        html: `<div class="dmn-sim-badge">${escapeHtml(formatValue(result.results[decisionId].value))}</div>`,
+      })
+    }
   }
 
   private clearMarkersAndOverlays(): void {

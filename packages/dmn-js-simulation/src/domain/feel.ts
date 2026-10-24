@@ -6,23 +6,17 @@
  */
 
 import { unaryTest, evaluate, FeelDate, FeelDateTime, FeelDuration, FeelTime } from 'feelin'
-import { isNumericType } from './model'
+import { classifyType, type DmnTypeKind } from './dmnType'
 
 /** A raw form value before it is coerced to its DMN type. */
 export type RawValue = string | number | boolean | null | undefined
 
-/**
- * FEEL temporal typeRefs → the FEEL constructor that parses their literal form.
- * Covers the DMN built-in temporal types (and their lower-cased spellings).
- */
-const TEMPORAL_CONSTRUCTORS: Record<string, string> = {
+/** Temporal type kinds → the FEEL constructor that parses their literal form. */
+const TEMPORAL_CONSTRUCTORS: Partial<Record<DmnTypeKind, string>> = {
   date: 'date',
   time: 'time',
-  datetime: 'date and time',
-  'date and time': 'date and time',
+  dateTime: 'date and time',
   duration: 'duration',
-  daytimeduration: 'duration',
-  yearmonthduration: 'duration',
 }
 
 /** Coerce a raw form value into the JS type its DMN typeRef implies. */
@@ -31,14 +25,15 @@ export function coerceValue(raw: RawValue, typeRef: string): unknown {
   // Treat a blank / whitespace-only string as "missing" (Number('  ') is 0).
   if (typeof raw === 'string' && raw.trim() === '') return undefined
 
-  if (isNumericType(typeRef)) {
+  const kind = classifyType(typeRef)
+  if (kind === 'number') {
     const n = Number(raw)
     return Number.isNaN(n) ? undefined : n
   }
-  if ((typeRef || '').toLowerCase() === 'boolean') {
+  if (kind === 'boolean') {
     return raw === true || raw === 'true'
   }
-  const constructor = TEMPORAL_CONSTRUCTORS[(typeRef || '').toLowerCase()]
+  const constructor = TEMPORAL_CONSTRUCTORS[kind]
   if (constructor) {
     // Parse the raw literal into a real FEEL temporal via its constructor so
     // temporal unary tests (e.g. `< date("2020-01-01")`) compare like-typed

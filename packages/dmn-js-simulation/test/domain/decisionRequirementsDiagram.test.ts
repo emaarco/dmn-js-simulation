@@ -154,4 +154,39 @@ describe('evaluateDecisionRequirementsDiagram', () => {
     expect(result.order).toEqual(['A'])
     expect(result.results.A.value).toBe(2)
   })
+  it('feeds an upstream context into a downstream table without stringifying it', () => {
+    const model: DecisionRequirementsDiagramModel = {
+      inputData: [],
+      decisions: [
+        {
+          id: 'Customer',
+          name: 'Customer',
+          variableName: 'Customer',
+          requiredDecisionIds: [],
+          requiredInputIds: [],
+          logic: { kind: 'literalExpression', expression: '{ tier: "gold" }' },
+        },
+        {
+          id: 'Tier',
+          name: 'Tier',
+          variableName: 'Tier',
+          requiredDecisionIds: ['Customer'],
+          requiredInputIds: [],
+          logic: {
+            kind: 'decisionTable',
+            model: {
+              decisionId: 'Tier',
+              decisionName: 'Tier',
+              hitPolicy: 'FIRST',
+              inputs: [{ id: 'i', label: 'Customer', expression: 'Customer', typeRef: 'string', options: [] }],
+              outputs: [{ id: 'o', name: 'Tier', label: 'Tier', typeRef: 'string', priorityValues: [] }],
+              rules: [{ id: 'r', inputEntries: ['-'], outputEntries: ['Customer.tier'] }],
+            },
+          },
+        },
+      ],
+    }
+    const result = evaluateDecisionRequirementsDiagram(model, {})
+    expect(result.results.Tier.value).toBe('gold')
+  })
 })

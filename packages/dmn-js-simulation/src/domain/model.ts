@@ -61,10 +61,3 @@ export interface DecisionModel {
   outputs: DmnOutput[]
   rules: DmnRule[]
 }
-
-const NUMERIC_TYPES = new Set(['integer', 'long', 'int', 'number', 'double', 'decimal', 'float'])
-
-/** Whether a DMN typeRef should be edited as a number field. */
-export function isNumericType(typeRef: string): boolean {
-  return NUMERIC_TYPES.has((typeRef || '').toLowerCase())
-}

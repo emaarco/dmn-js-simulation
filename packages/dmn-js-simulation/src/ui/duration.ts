@@ -9,6 +9,8 @@
  * elsewhere.
  */
 
+import { classifyType } from '../domain/dmnType'
+
 export type DurationUnit = 'Y' | 'M' | 'D' | 'H' | 'Min'
 
 export interface DurationOption {
@@ -29,8 +31,7 @@ export const DEFAULT_DURATION_UNIT: DurationUnit = 'D'
 
 /** Whether a DMN typeRef is one of the duration types. */
 export function isDurationType(typeRef: string): boolean {
-  const t = (typeRef || '').toLowerCase()
-  return t === 'duration' || t === 'daytimeduration' || t === 'yearmonthduration'
+  return classifyType(typeRef) === 'duration'
 }
 
 /** Compose an ISO 8601 duration from an amount + unit; blank amount → `''`. */

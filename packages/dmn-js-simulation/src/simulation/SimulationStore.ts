@@ -8,6 +8,7 @@
 import type { RawValue } from './../domain/feel'
 import type { DecisionModel } from './../domain/model'
 import { evaluateDecision, type EvaluationResult } from './../domain/evaluateDecision'
+import type { ModelerBridge } from './ModelerBridge'
 
 export interface SimulationSnapshot {
   model: DecisionModel | null
@@ -23,6 +24,7 @@ export class SimulationStore {
   private result: EvaluationResult | null = null
   /** Whether `result` came from a local `run()` vs a reflected DRD run (`hydrate`). */
   private resultIsLocal = false
+  private bridge: ModelerBridge | null = null
   private readonly listeners = new Set<SimulationListener>()
 
   getModel(): DecisionModel | null {
@@ -49,6 +51,22 @@ export class SimulationStore {
     this.result = null
     this.resultIsLocal = false
     this.emit()
+    this.reflectBridge()
+  }
+
+  /**
+   * Follow a DRD run published on the bridge: the decision's reflected inputs
+   * and result are shown until the user runs the table locally. Returns a
+   * disconnect function.
+   */
+  connectBridge(bridge: ModelerBridge): () => void {
+    this.bridge = bridge
+    const unsubscribe = bridge.subscribe(() => this.reflectBridge())
+    this.reflectBridge()
+    return () => {
+      unsubscribe()
+      this.bridge = null
+    }
   }
 
   /**
@@ -59,6 +77,7 @@ export class SimulationStore {
    * from a live edit so the form is not wiped on every change.
    */
   refreshModel(model: DecisionModel): void {
+    if (this.model && sameModel(this.model, model)) return
     const previous = this.model
     const previousValues = this.values
     this.model = model
@@ -69,6 +88,7 @@ export class SimulationStore {
     this.result = null
     this.resultIsLocal = false
     this.emit()
+    this.reflectBridge()
   }
 
   /**
@@ -129,9 +149,21 @@ export class SimulationStore {
     }
   }
 
+  private reflectBridge(): void {
+    const decisionId = this.model?.decisionId
+    if (!this.bridge || !decisionId || this.resultIsLocal) return
+    const reflection = this.bridge.getTableReflection(decisionId)
+    if (!reflection) this.clearHydrated()
+    else if (this.result !== reflection.result) this.hydrate(reflection.inputs, reflection.result)
+  }
+
   private emit(): void {
     const snapshot: SimulationSnapshot = { model: this.model, values: this.values, result: this.result }
     // Snapshot the listeners: a listener may (un)subscribe during notification.
     for (const listener of [...this.listeners]) listener(snapshot)
   }
+}
+
+function sameModel(a: DecisionModel, b: DecisionModel): boolean {
+  return JSON.stringify(a) === JSON.stringify(b)
 }

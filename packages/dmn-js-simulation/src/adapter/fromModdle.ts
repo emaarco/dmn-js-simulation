@@ -10,14 +10,14 @@
  * dmn-moddle type surface is intentionally not depended on.
  */
 
-import type { Aggregation, DecisionModel, DmnInput, DmnOutput, DmnRule, HitPolicy } from '../domain/model'
+import type { DecisionModel } from '../domain/model'
 import type {
   DecisionLogic,
   DecisionRequirementsDiagramDecision,
   DecisionRequirementsDiagramInputData,
   DecisionRequirementsDiagramModel,
 } from '../domain/decisionRequirementsDiagram'
-import { collectColumnBounds, collectColumnOptions, parseOutputValueList } from './util'
+import { buildDecisionModel } from './buildDecisionModel'
 
 /** The minimal structural view of a moddle businessObject that we read. */
 export interface ModdleElement {
@@ -53,55 +53,33 @@ export function decisionTableToModel(decisionTable: ModdleElement): DecisionMode
   }
 
   const decision = decisionTable.$parent
-  const hitPolicy = (str(decisionTable.hitPolicy) || 'UNIQUE').toUpperCase() as HitPolicy
-  const aggregationAttr = str(decisionTable.aggregation).toUpperCase()
-  const aggregation = (['SUM', 'MIN', 'MAX', 'COUNT'] as const).find(a => a === aggregationAttr) as
-    Aggregation | undefined
-
-  const inputEls = asArray(decisionTable.input)
-  const outputEls = asArray(decisionTable.output)
-  const ruleEls = asArray(decisionTable.rule)
-
-  const rules: DmnRule[] = ruleEls.map((rule, ri) => ({
-    id: str(rule.id) || `rule_${ri}`,
-    inputEntries: asArray(rule.inputEntry).map(entryText),
-    outputEntries: asArray(rule.outputEntry).map(entryText),
-  }))
-
-  const inputs: DmnInput[] = inputEls.map((input, ci) => {
-    const expressionEl = input.inputExpression as ModdleElement | undefined
-    const expression = entryText(expressionEl)
-    const label = str(input.label) || expression || `Input ${ci + 1}`
-    const typeRef = str(expressionEl?.typeRef) || 'string'
-    const columnCells = rules.map(r => r.inputEntries[ci] ?? '')
-    const options = collectColumnOptions(columnCells)
-    const { min, max } = collectColumnBounds(columnCells, typeRef)
-    return { id: str(input.id) || `input_${ci}`, label, expression, typeRef, options, min, max }
-  })
-
-  const outputs: DmnOutput[] = outputEls.map((output, ci) => {
-    const label = str(output.label)
-    const name = str(output.name) || label || `Output ${ci + 1}`
-    const outputValues = output.outputValues as ModdleElement | undefined
-    const priorityValues = parseOutputValueList(entryText(outputValues))
-    return {
-      id: str(output.id) || `output_${ci}`,
-      name,
-      label: label || name,
-      typeRef: str(output.typeRef) || 'string',
-      priorityValues,
-    }
-  })
-
-  return {
+  return buildDecisionModel({
     decisionId: str(decision?.id),
     decisionName: str(decision?.name),
-    hitPolicy,
-    aggregation,
-    inputs,
-    outputs,
-    rules,
-  }
+    hitPolicy: str(decisionTable.hitPolicy),
+    aggregation: str(decisionTable.aggregation),
+    inputs: asArray(decisionTable.input).map(input => {
+      const expressionEl = input.inputExpression as ModdleElement | undefined
+      return {
+        id: str(input.id),
+        label: str(input.label),
+        expression: entryText(expressionEl),
+        typeRef: str(expressionEl?.typeRef),
+      }
+    }),
+    outputs: asArray(decisionTable.output).map(output => ({
+      id: str(output.id),
+      name: str(output.name),
+      label: str(output.label),
+      typeRef: str(output.typeRef),
+      outputValues: entryText(output.outputValues as ModdleElement | undefined),
+    })),
+    rules: asArray(decisionTable.rule).map(rule => ({
+      id: str(rule.id),
+      inputEntries: asArray(rule.inputEntry).map(entryText),
+      outputEntries: asArray(rule.outputEntry).map(entryText),
+    })),
+  })
 }
 
 /** Resolve a moddle reference (`requiredDecision` / `requiredInput`) to an id. */

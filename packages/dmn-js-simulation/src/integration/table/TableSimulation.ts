@@ -14,10 +14,8 @@
  */
 
 import { decisionTableToModel, type ModdleElement } from '../../adapter/fromModdle'
-import type { DecisionModel } from '../../domain/model'
-import type { EvaluationResult } from '../../domain/evaluateDecision'
 import type { SimulationStore } from '../../simulation/SimulationStore'
-import { getModelerBridge, type ModelerBridge } from '../../simulation/ModelerBridge'
+import { getModelerBridge } from '../../simulation/ModelerBridge'
 import { SimulationFormComponent } from '../../ui/SimulationForm'
 
 interface EventBus {
@@ -43,7 +41,6 @@ export class TableSimulation {
   private readonly sheet: Sheet
   private readonly renderer: Renderer
   private readonly store: SimulationStore
-  private readonly bridge: ModelerBridge | null
 
   /** Teardown callbacks run on `diagram.destroy` (event listeners, subscriptions). */
   private readonly disposers: Array<() => void> = []
@@ -61,7 +58,6 @@ export class TableSimulation {
     this.sheet = sheet
     this.renderer = renderer
     this.store = store
-    this.bridge = getModelerBridge(injector.get('_parent', false))
 
     components.onGetComponent('table.before', () => SimulationFormComponent)
 
@@ -79,11 +75,10 @@ export class TableSimulation {
 
     // Reflect every store change (run / reset / input edit) in the table rows.
     this.disposers.push(this.store.subscribe(() => this.highlight()))
-    // Reflect a DRD run when the user drills into this decision table. The bridge
-    // outlives this viewer (one per parent Manager), so we MUST unsubscribe on
-    // destroy or every reimport leaks a listener pinning this whole viewer.
-    const bridgeOff = this.bridge?.subscribe(() => this.onBridgeChange())
-    if (bridgeOff) this.disposers.push(bridgeOff)
+    // The bridge outlives this viewer (one per parent Manager), so we MUST
+    // disconnect on destroy or every reimport leaks a listener pinning this viewer.
+    const bridge = getModelerBridge(injector.get('_parent', false))
+    if (bridge) this.disposers.push(this.store.connectBridge(bridge))
 
     eventBus.on('diagram.destroy', () => this.destroy())
   }
@@ -97,38 +92,7 @@ export class TableSimulation {
 
   private onRender(): void {
     this.refreshModel()
-    this.reflectDecisionRequirementsDiagramRun()
     this.scheduleHighlight()
-  }
-
-  private onBridgeChange(): void {
-    this.reflectDecisionRequirementsDiagramRun()
-    this.scheduleHighlight()
-  }
-
-  /**
-   * When the user drills into a decision after a DRD run, seed this table's form
-   * with the inputs and result that decision produced — so the outcome (result
-   * bar + highlighted rows) is visible, not just an unexplained highlight. A
-   * local run the user made here always wins and is never overwritten.
-   */
-  private reflectDecisionRequirementsDiagramRun(): void {
-    if (this.store.isLocalRun() || !this.bridge) return
-    const model = this.store.getModel()
-    if (!model) return
-
-    const reflection = this.bridge.getTableReflection(model.decisionId)
-    if (!reflection) {
-      // The DRD run was cleared/reset — drop any reflected result we were showing
-      // so the highlight and result bar don't stick around.
-      this.store.clearHydrated()
-      return
-    }
-    // Same reflection already shown (stable object until the next DRD run) — skip
-    // to avoid redundant re-renders on unrelated `elements.changed` events.
-    if (this.store.getResult() === reflection.result) return
-
-    this.store.hydrate(reflection.inputs, reflection.result)
   }
 
   /**
@@ -162,15 +126,7 @@ export class TableSimulation {
     }
 
     const next = decisionTableToModel(businessObject)
-    const current = this.store.getModel()
-    // Nothing actually changed (e.g. a selection or unrelated event): keep the
-    // current model, values and any result/highlight untouched.
-    if (current && sameModel(current, next)) return
-
-    // The table changed. On first load adopt it outright; on a live edit adopt
-    // the rebuilt model but preserve the user's entered inputs (matched by id) so
-    // a re-run reflects the new rules/outputs/hit-policy without wiping the form.
-    if (!current) this.store.setModel(next)
+    if (!this.store.getModel()) this.store.setModel(next)
     else this.store.refreshModel(next)
   }
 
@@ -179,7 +135,7 @@ export class TableSimulation {
     const container = this.renderer.getContainer()
     if (!container) return
 
-    const result = this.effectiveResult()
+    const result = this.store.getResult()
     const reported = new Set(result?.reportedRuleIndices ?? [])
     const matched = new Set(result?.matchedRuleIndices ?? [])
 
@@ -187,19 +143,6 @@ export class TableSimulation {
       row.classList.toggle('dmn-sim-match', reported.has(index))
       row.classList.toggle('dmn-sim-candidate', matched.has(index) && !reported.has(index))
     })
-  }
-
-  /**
-   * The result to highlight: the local run wins; otherwise, if the user drilled
-   * in from a DRD simulation, reflect this decision's result from that run.
-   */
-  private effectiveResult(): EvaluationResult | null {
-    const local = this.store.getResult()
-    if (local) return local
-    const decisionId = this.store.getModel()?.decisionId
-
-    if (!decisionId || !this.bridge) return null
-    return this.bridge.getTableResult(decisionId)
   }
 }
 
@@ -219,13 +162,4 @@ function ruleRows(container: HTMLElement): HTMLElement[] {
   if (rows.length) return rows
   // Fallback if the index column is absent: every body row is a rule row.
   return Array.from(container.querySelectorAll('tbody tr')) as HTMLElement[]
-}
-
-/**
- * Whether two rebuilt models are identical. Models are plain, deterministically
- * built data, so a structural compare is enough to tell a real edit (rules,
- * outputs, hit policy, inputs) from a no-op refresh.
- */
-function sameModel(a: DecisionModel, b: DecisionModel): boolean {
-  return JSON.stringify(a) === JSON.stringify(b)
 }
