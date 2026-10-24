@@ -69,7 +69,7 @@ export class ExampleApp {
   }
 
   private bindMenu(): void {
-    this.btnMenu.addEventListener('click', () => this.setMenuOpen(this.menu.hidden))
+    this.btnMenu.addEventListener('click', () => this.setMenuOpen(this.menu.hidden !== false))
 
     document.addEventListener('click', event => {
       const target = event.target as Node

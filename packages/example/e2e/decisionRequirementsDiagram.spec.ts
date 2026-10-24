@@ -21,7 +21,9 @@ test('renders a DRD input panel with a field per input data', async ({ page }) =
 
 test('centers the DRD diagram in the viewport (not over-zoomed)', async ({ page }) => {
   const box = await page.evaluate(() => {
-    const canvas = (window as { __modeler: { getActiveViewer(): { get(n: string): { viewbox(): any } } } }).__modeler
+    const canvas = (
+      window as unknown as { __modeler: { getActiveViewer(): { get(n: string): { viewbox(): any } } } }
+    ).__modeler
       .getActiveViewer()
       .get('canvas')
     const v = canvas.viewbox()

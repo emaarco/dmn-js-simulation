@@ -1,4 +1,4 @@
-import DmnModeler from 'dmn-js/lib/Modeler'
+import DmnModeler, { type View, type Viewer } from 'dmn-js/lib/Modeler'
 
 import 'dmn-js/dist/assets/diagram-js.css'
 import 'dmn-js/dist/assets/dmn-js-shared.css'
@@ -11,16 +11,6 @@ import 'dmn-js/dist/assets/dmn-font/css/dmn-embedded.css'
 import DmnSimulationModule from '@emaarco/dmn-js-simulation'
 import '@emaarco/dmn-js-simulation/assets/dmn-js-simulation.css'
 
-interface View {
-  type: string
-  element: { id: string }
-}
-
-interface Viewer {
-  get(name: string): unknown
-  on(event: string, callback: () => void): void
-}
-
 export class Editor {
   readonly modeler = new DmnModeler({
     container: '#canvas',
@@ -30,8 +20,7 @@ export class Editor {
 
   /** Serialize the current model as formatted DMN XML. */
   async saveXml(): Promise<string> {
-    const modeler = this.modeler as unknown as { saveXML(o: { format: boolean }): Promise<{ xml: string }> }
-    const { xml } = await modeler.saveXML({ format: true })
+    const { xml } = await this.modeler.saveXML({ format: true })
     return xml
   }
 
@@ -41,14 +30,14 @@ export class Editor {
     const views = this.views()
     const drd = views.find(v => v.type === 'drd')
     const table = views.find(v => v.type === 'decisionTable')
-    if (drd) await this.modeler.open(drd as never)
-    else if (table) await this.modeler.open(table as never)
+    if (drd) await this.modeler.open(drd)
+    else if (table) await this.modeler.open(table)
   }
 
   /** Open a decision-table view by decision id (used by the drill-in E2E). */
   openDecisionTable(decisionId: string): void {
     const view = this.views().find(v => v.type === 'decisionTable' && v.element.id === decisionId)
-    if (view) void this.modeler.open(view as never)
+    if (view) void this.modeler.open(view)
   }
 
   /**
@@ -58,7 +47,7 @@ export class Editor {
    * drill-down — so it never goes stale.
    */
   trackActiveView(canvas: HTMLElement): void {
-    this.modeler.on('views.changed', (event: { activeView?: View }) => {
+    this.modeler.on<{ activeView?: View }>('views.changed', event => {
       canvas.dataset.view = event.activeView?.type ?? ''
       if (event.activeView?.type === 'drd') this.centerActiveDiagram()
     })
@@ -78,11 +67,11 @@ export class Editor {
   }
 
   private views(): View[] {
-    return this.modeler.getViews() as View[]
+    return this.modeler.getViews()
   }
 
   private activeViewer(): Viewer | undefined {
-    return (this.modeler as unknown as { getActiveViewer?(): Viewer | undefined }).getActiveViewer?.()
+    return this.modeler.getActiveViewer()
   }
 
   /**
