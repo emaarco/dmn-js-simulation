@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.4.0](https://github.com/emaarco/dmn-js-simulation/compare/v0.3.2...v0.4.0) (2026-10-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* the evaluation and reader functions are replaced by classes. parseDecisionModelFromXml(xml) -> new DmnXmlReader().readDecisionTable(xml), decisionTableToModel(bo) -> new DmnModdleReader().readDecisionTable(bo), definitionsToDecisionRequirementsDiagramModel(d) -> new DmnModdleReader().readDecisionRequirementsDiagram(d), evaluateDecision(model, values) -> new DecisionTableEvaluator(model).evaluate(values), evaluateDecisionRequirementsDiagram(model, values) -> new DecisionRequirementsDiagramEvaluator(model).evaluate(values), applyHitPolicy(model, matched, outputs) -> new HitPolicyResolver(model).resolve(matched, outputs), getModelerBridge(parent) -> ModelerBridge.forParent(parent). SimulationStore.refreshModel is merged into setModel, hydrate/clearHydrated/ isLocalRun are internal, and the SimulationSnapshot/SimulationListener types are removed (listeners take no arguments).
+
+### Code Refactoring
+
+* restructure library and example around classes with helpers in utils ([#67](https://github.com/emaarco/dmn-js-simulation/issues/67)) ([2bf2681](https://github.com/emaarco/dmn-js-simulation/commit/2bf2681f574c990fb43c980df399e8e7fce759bd))
+
 ## [0.3.2](https://github.com/emaarco/dmn-js-simulation/compare/v0.3.1...v0.3.2) (2026-10-05)
 
 
