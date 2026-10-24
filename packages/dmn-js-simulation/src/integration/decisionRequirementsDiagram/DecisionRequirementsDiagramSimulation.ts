@@ -16,14 +16,8 @@ import {
 import type { RawValue } from '../../domain/feel'
 import { getModelerBridge, type ModelerBridge } from '../../simulation/ModelerBridge'
 import { formatValue } from '../../ui/formatValue'
-import { htmlInputType } from '../../ui/inputType'
-import {
-  composeDuration,
-  DEFAULT_DURATION_UNIT,
-  DURATION_UNITS,
-  isDurationType,
-  type DurationUnit,
-} from '../../ui/duration'
+import { describeControl, type ControlInput } from '../../ui/inputControl'
+import { composeDuration, DEFAULT_DURATION_UNIT, DURATION_UNITS, type DurationUnit } from '../../ui/duration'
 
 interface EventBus {
   on(event: string, callback: (...args: unknown[]) => void): void
@@ -129,7 +123,7 @@ export class DecisionRequirementsDiagramSimulation {
       const label = document.createElement('span')
       label.className = 'dmn-sim-field-label'
       label.textContent = input.label
-      const control = this.buildControl(input.typeRef)
+      const control = this.buildControl(input)
       this.inputs.set(input.id, { read: control.read, reset: control.reset })
       field.appendChild(label)
       field.appendChild(control.node)
@@ -154,8 +148,20 @@ export class DecisionRequirementsDiagramSimulation {
   }
 
   /** One field control: a single input, or a duration composer (number + unit). */
-  private buildControl(typeRef: string): { node: HTMLElement; read: () => string; reset: () => void } {
-    if (isDurationType(typeRef)) {
+  private buildControl(input: ControlInput): { node: HTMLElement; read: () => string; reset: () => void } {
+    const spec = describeControl(input)
+    if (spec.kind === 'select') {
+      const select = document.createElement('select')
+      select.className = 'dmn-sim-input'
+      for (const option of ['', ...spec.options]) {
+        const opt = document.createElement('option')
+        opt.value = option
+        opt.textContent = option || '–'
+        select.appendChild(opt)
+      }
+      return { node: select, read: () => select.value, reset: () => (select.value = '') }
+    }
+    if (spec.kind === 'duration') {
       const wrapper = createDiv('dmn-sim-duration')
       const amount = document.createElement('input')
       amount.className = 'dmn-sim-input dmn-sim-duration-amount'
@@ -184,8 +190,10 @@ export class DecisionRequirementsDiagramSimulation {
     }
     const control = document.createElement('input')
     control.className = 'dmn-sim-input'
-    control.type = htmlInputType(typeRef)
-    control.placeholder = typeRef
+    control.type = spec.htmlType
+    control.placeholder = spec.placeholder
+    if (spec.min !== undefined) control.min = spec.min
+    if (spec.max !== undefined) control.max = spec.max
     return { node: control, read: () => control.value, reset: () => (control.value = '') }
   }
 
