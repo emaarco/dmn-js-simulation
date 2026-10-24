@@ -10,61 +10,13 @@
  */
 import { createElement } from 'inferno-create-element'
 import { Component } from 'inferno'
-import type { EvaluationResult } from '../domain/evaluateDecision'
 import type { SimulationStore } from '../simulation/SimulationStore'
-import { formatValue } from './formatValue'
-import { composeDuration, DURATION_UNITS, type DurationUnit } from './duration'
-import { describeControl, durationParts, selectOptions } from './inputControl'
-import type { DmnInput } from '../domain/model'
+import { InputField } from './InputField'
+import { ResultBar } from './ResultBar'
 
-/** The result line — output pills, aggregation, violation and reported rules. */
-function ResultBar({ result }: { result: EvaluationResult }): any {
-  const miss = result.matchedRuleIndices.length === 0
-  const className =
-    'dmn-sim-result' + (miss ? ' dmn-sim-result--miss' : '') + (result.violation ? ' dmn-sim-result--warn' : '')
-
-  const outputs = result.aggregation
-    ? createElement(
-        'span',
-        { className: 'dmn-sim-output' },
-        `${result.aggregation.fn}(${result.aggregation.output}) = `,
-        createElement('strong', null, formatValue(result.aggregation.value)),
-      )
-    : result.outputs.length
-      ? result.outputs.map((output, oi) =>
-          createElement(
-            'span',
-            { className: 'dmn-sim-output', key: oi },
-            Object.keys(output).map(key =>
-              createElement('span', { key }, `${key} = `, createElement('strong', null, formatValue(output[key]))),
-            ),
-          ),
-        )
-      : createElement('span', { className: 'dmn-sim-none' }, 'no matching rule')
-
-  return createElement(
-    'div',
-    { className },
-    createElement('span', { className: 'dmn-sim-arrow' }, '→'),
-    outputs,
-    result.violation ? createElement('span', { className: 'dmn-sim-violation' }, `⚠ ${result.violation}`) : null,
-    result.reportedRuleIndices.length
-      ? createElement(
-          'span',
-          { className: 'dmn-sim-rule' },
-          `${result.reportedRuleIndices.length > 1 ? 'Rules' : 'Rule'} ${result.reportedRuleIndices
-            .map(i => i + 1)
-            .join(', ')}`,
-        )
-      : null,
-  )
-}
-
-export class SimulationFormComponent extends Component<Record<string, never>, { tick: number }> {
+export class SimulationForm extends Component<Record<string, never>, { tick: number }> {
   private readonly store: SimulationStore
   private unsubscribe?: () => void
-  /** Remembered duration unit per input index (survives a blank amount). */
-  private readonly durationUnits = new Map<number, DurationUnit>()
 
   constructor(props: Record<string, never>, context: any) {
     super(props, context)
@@ -78,71 +30,6 @@ export class SimulationFormComponent extends Component<Record<string, never>, { 
 
   override componentWillUnmount(): void {
     this.unsubscribe?.()
-  }
-
-  private readonly onChange = (index: number) => (event: Event) => {
-    this.store.setValue(index, (event.target as HTMLInputElement | HTMLSelectElement).value)
-  }
-
-  private durationUnit(index: number): DurationUnit {
-    return this.durationUnits.get(index) ?? durationParts(this.store.getValues()[index]).unit
-  }
-
-  private readonly onDurationAmount = (index: number) => (event: Event) => {
-    const unit = this.durationUnit(index)
-    this.durationUnits.set(index, unit)
-    this.store.setValue(index, composeDuration((event.target as HTMLInputElement).value, unit))
-  }
-
-  private readonly onDurationUnit = (index: number) => (event: Event) => {
-    const unit = (event.target as HTMLSelectElement).value as DurationUnit
-    this.durationUnits.set(index, unit)
-    const { amount } = durationParts(this.store.getValues()[index])
-    this.store.setValue(index, composeDuration(amount, unit))
-  }
-
-  /** The input control for one column: dropdown, duration composer or field. */
-  private renderControl(input: DmnInput, i: number, value: unknown): any {
-    const spec = describeControl(input)
-    if (spec.kind === 'select') {
-      return createElement(
-        'select',
-        { className: 'dmn-sim-input', value: value ?? '', onChange: this.onChange(i) },
-        createElement('option', { value: '' }, '–'),
-        selectOptions(spec.options, value).map(option =>
-          createElement('option', { value: option, key: option }, option),
-        ),
-      )
-    }
-    if (spec.kind === 'duration') {
-      const { amount, unit } = durationParts(value, this.durationUnit(i))
-      return createElement(
-        'span',
-        { className: 'dmn-sim-duration' },
-        createElement('input', {
-          className: 'dmn-sim-input dmn-sim-duration-amount',
-          type: 'number',
-          min: '0',
-          placeholder: 'amount',
-          value: amount,
-          onInput: this.onDurationAmount(i),
-        }),
-        createElement(
-          'select',
-          { className: 'dmn-sim-input dmn-sim-duration-unit', value: unit, onChange: this.onDurationUnit(i) },
-          DURATION_UNITS.map(u => createElement('option', { value: u.value, key: u.value }, u.label)),
-        ),
-      )
-    }
-    return createElement('input', {
-      className: 'dmn-sim-input',
-      type: spec.htmlType,
-      placeholder: spec.placeholder,
-      min: spec.min,
-      max: spec.max,
-      value: value ?? '',
-      onInput: this.onChange(i),
-    })
   }
 
   private readonly onSubmit = (event: Event) => {
@@ -172,7 +59,11 @@ export class SimulationFormComponent extends Component<Record<string, never>, { 
             'label',
             { className: 'dmn-sim-field', key: input.id },
             createElement('span', { className: 'dmn-sim-field-label' }, input.label),
-            this.renderControl(input, i, values[i]),
+            createElement(InputField, {
+              input,
+              value: values[i],
+              onChange: (value: string) => this.store.setValue(i, value),
+            }),
           ),
         ),
         createElement(

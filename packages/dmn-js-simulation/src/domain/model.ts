@@ -2,7 +2,7 @@
  * The plain, framework-free model a single DMN decision table is simulated
  * against. It carries only what evaluation needs — inputs, outputs, rules (as
  * raw FEEL text) and the hit policy. FEEL is never interpreted here (see
- * `feel.ts`); the model is never read from dmn-js or XML here (see `adapter/`).
+ * `utils/feel.ts`); the model is never read from dmn-js or XML here (see `adapter/`).
  */
 
 export type HitPolicy = 'UNIQUE' | 'FIRST' | 'ANY' | 'PRIORITY' | 'COLLECT' | 'RULE ORDER' | 'OUTPUT ORDER'
@@ -60,4 +60,34 @@ export interface DecisionModel {
   inputs: DmnInput[]
   outputs: DmnOutput[]
   rules: DmnRule[]
+}
+
+/** A raw form value before it is coerced to its DMN type. */
+export type RawValue = string | number | boolean | null | undefined
+
+export interface DecisionRequirementsDiagramInputData {
+  id: string
+  /** Variable name the value is bound to (what input expressions reference). */
+  name: string
+  /** Human-friendly label shown in the form (the InputData name; falls back to `name`). */
+  label: string
+  typeRef: string
+}
+
+export type DecisionLogic =
+  { kind: 'decisionTable'; model: DecisionModel } | { kind: 'literalExpression'; expression: string } | { kind: 'none' }
+
+export interface DecisionRequirementsDiagramDecision {
+  id: string
+  name: string
+  /** Variable name the result is bound to for downstream decisions. */
+  variableName: string
+  requiredDecisionIds: string[]
+  requiredInputIds: string[]
+  logic: DecisionLogic
+}
+
+export interface DecisionRequirementsDiagramModel {
+  inputData: DecisionRequirementsDiagramInputData[]
+  decisions: DecisionRequirementsDiagramDecision[]
 }

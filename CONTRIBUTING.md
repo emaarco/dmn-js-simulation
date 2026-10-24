@@ -39,6 +39,11 @@ npm run test:e2e      # Playwright E2E against the example app
   evaluation, no dmn-js/DOM), `adapter/`, `simulation/`, `ui/` and
   `integration/`. Imports only ever point "down"; `npm run lint:deps`
   (dependency-cruiser) enforces this in CI.
+- **Classes first, helpers in `utils/`.** Each layer builds on classes (one per
+  file, named like the file); stateless helper functions live in that layer's
+  `utils/` folder and import nothing but other utils and the domain data types.
+  `npm run lint` rejects top-level functions outside `utils/` and
+  `lint:deps` keeps `utils/` a leaf.
 - **Add tests.** Evaluation logic and hit policies are covered by Vitest unit
   tests; please extend them for any behavior change.
 

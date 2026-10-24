@@ -35,54 +35,6 @@ describe('SimulationStore', () => {
     expect(store.getResult()?.reportedRuleIndices).toEqual([1])
   })
 
-  it('hydrate reflects a DRD run (values + result) without marking it a local run', () => {
-    const store = new SimulationStore()
-    store.setModel(model())
-    const reflected = { matchedRuleIndices: [1], reportedRuleIndices: [1], outputs: [{ Dish: 'Roastbeef' }] }
-    store.hydrate(['Winter'], reflected)
-
-    expect(store.getValues()).toEqual(['Winter'])
-    expect(store.getResult()).toBe(reflected)
-    expect(store.isLocalRun()).toBe(false)
-  })
-
-  it('clearHydrated drops a reflected result but keeps a local run', () => {
-    const store = new SimulationStore()
-    store.setModel(model())
-
-    // Reflected (hydrated) result is cleared.
-    store.hydrate(['Winter'], { matchedRuleIndices: [1], reportedRuleIndices: [1], outputs: [{ Dish: 'Roastbeef' }] })
-    expect(store.getResult()).not.toBeNull()
-    store.clearHydrated()
-    expect(store.getResult()).toBeNull()
-    expect(store.isLocalRun()).toBe(false)
-
-    // A local run is never dropped by clearHydrated.
-    store.setValue(0, 'Winter')
-    store.run()
-    store.clearHydrated()
-    expect(store.getResult()).not.toBeNull()
-    expect(store.isLocalRun()).toBe(true)
-  })
-
-  it('run marks the result as local; setModel/reset clear that flag', () => {
-    const store = new SimulationStore()
-    store.setModel(model())
-    store.setValue(0, 'Winter')
-    store.run()
-    expect(store.isLocalRun()).toBe(true)
-    store.reset()
-    expect(store.isLocalRun()).toBe(false)
-  })
-
-  it('hydrate ignores an input-arity mismatch', () => {
-    const store = new SimulationStore()
-    store.setModel(model())
-    store.hydrate(['Winter', 'extra'], { matchedRuleIndices: [], reportedRuleIndices: [], outputs: [] })
-    expect(store.getResult()).toBeNull()
-    expect(store.getValues()).toEqual([''])
-  })
-
   it('invalidates the previous result when an input changes', () => {
     const store = new SimulationStore()
     store.setModel(model())
@@ -108,7 +60,6 @@ describe('SimulationStore', () => {
     const store = new SimulationStore()
     store.setModel(model())
     expect(store.run()?.matchedRuleIndices).toEqual([])
-    expect(store.isLocalRun()).toBe(true)
   })
 
   it('does not run without a model', () => {
@@ -128,7 +79,7 @@ describe('SimulationStore', () => {
     expect(listener).toHaveBeenCalledTimes(3)
   })
 
-  it('refreshModel preserves entered values by input id and drops the stale result', () => {
+  it('setModel preserves entered values by input id and drops the stale result', () => {
     const store = new SimulationStore()
     store.setModel(model())
     store.setValue(0, 'Winter')
@@ -138,14 +89,14 @@ describe('SimulationStore', () => {
     // Same input (id 'i') but an edited rule output — a re-run should reflect it.
     const edited = model()
     edited.rules[1].outputEntries = ['"Stew"']
-    store.refreshModel(edited)
+    store.setModel(edited)
 
     expect(store.getValues()).toEqual(['Winter']) // value carried over
     expect(store.getResult()).toBeNull() // stale result cleared
     expect(store.run()?.outputs).toEqual([{ Dish: 'Stew' }])
   })
 
-  it('refreshModel resets values for inputs that no longer exist', () => {
+  it('setModel resets values for inputs that no longer exist', () => {
     const store = new SimulationStore()
     store.setModel(model())
     store.setValue(0, 'Winter')
@@ -153,7 +104,7 @@ describe('SimulationStore', () => {
     // The input column id changed, so the old value cannot be carried over.
     const renamed = model()
     renamed.inputs[0].id = 'other'
-    store.refreshModel(renamed)
+    store.setModel(renamed)
 
     expect(store.getValues()).toEqual([''])
   })
@@ -186,14 +137,14 @@ describe('SimulationStore connected to a ModelerBridge', () => {
     const store = new SimulationStore()
     store.setModel(model())
     store.connectBridge(bridge)
-    bridge.setDecisionRequirementsDiagramResult(drdRun(['Winter']) as never)
+    bridge.publish(drdRun(['Winter']) as never)
     expect(store.getValues()).toEqual(['Winter'])
     expect(store.getResult()?.reportedRuleIndices).toEqual([1])
   })
 
   it('reflects a run published before the model arrives', () => {
     const bridge = new ModelerBridge()
-    bridge.setDecisionRequirementsDiagramResult(drdRun(['Winter']) as never)
+    bridge.publish(drdRun(['Winter']) as never)
     const store = new SimulationStore()
     store.connectBridge(bridge)
     store.setModel(model())
@@ -207,9 +158,9 @@ describe('SimulationStore connected to a ModelerBridge', () => {
     store.connectBridge(bridge)
     store.setValue(0, 'Fall')
     store.run()
-    bridge.setDecisionRequirementsDiagramResult(drdRun(['Winter']) as never)
+    bridge.publish(drdRun(['Winter']) as never)
     expect(store.getValues()).toEqual(['Fall'])
-    expect(store.isLocalRun()).toBe(true)
+    expect(store.getResult()?.reportedRuleIndices).toEqual([0])
   })
 
   it('shows no result when the reflected inputs do not fit the table', () => {
@@ -217,8 +168,40 @@ describe('SimulationStore connected to a ModelerBridge', () => {
     const store = new SimulationStore()
     store.setModel(model())
     store.connectBridge(bridge)
-    bridge.setDecisionRequirementsDiagramResult(drdRun(['Winter', 'extra']) as never)
+    bridge.publish(drdRun(['Winter', 'extra']) as never)
     expect(store.getResult()).toBeNull()
+  })
+
+  it('keeps the reflected values when the bridge is cleared', () => {
+    const bridge = new ModelerBridge()
+    const store = new SimulationStore()
+    store.setModel(model())
+    store.connectBridge(bridge)
+    bridge.publish(drdRun(['Winter']) as never)
+    bridge.clear()
+    expect(store.getValues()).toEqual(['Winter'])
+  })
+
+  it('keeps a local run when the bridge is cleared', () => {
+    const bridge = new ModelerBridge()
+    const store = new SimulationStore()
+    store.setModel(model())
+    store.connectBridge(bridge)
+    bridge.publish(drdRun(['Winter']) as never)
+    store.run()
+    bridge.clear()
+    expect(store.getResult()?.reportedRuleIndices).toEqual([1])
+  })
+
+  it('reflects a later DRD run again once a local run was reset', () => {
+    const bridge = new ModelerBridge()
+    const store = new SimulationStore()
+    store.setModel(model())
+    store.connectBridge(bridge)
+    store.run()
+    store.reset()
+    bridge.publish(drdRun(['Winter']) as never)
+    expect(store.getValues()).toEqual(['Winter'])
   })
 
   it('drops the reflection when the bridge is cleared', () => {
@@ -226,7 +209,7 @@ describe('SimulationStore connected to a ModelerBridge', () => {
     const store = new SimulationStore()
     store.setModel(model())
     store.connectBridge(bridge)
-    bridge.setDecisionRequirementsDiagramResult(drdRun(['Winter']) as never)
+    bridge.publish(drdRun(['Winter']) as never)
     bridge.clear()
     expect(store.getResult()).toBeNull()
   })
@@ -237,18 +220,18 @@ describe('SimulationStore connected to a ModelerBridge', () => {
     store.setModel(model())
     const disconnect = store.connectBridge(bridge)
     disconnect()
-    bridge.setDecisionRequirementsDiagramResult(drdRun(['Winter']) as never)
+    bridge.publish(drdRun(['Winter']) as never)
     expect(store.getResult()).toBeNull()
   })
 })
 
-describe('SimulationStore.refreshModel', () => {
+describe('SimulationStore.setModel with an unchanged model', () => {
   it('keeps the result when the rebuilt model is unchanged', () => {
     const store = new SimulationStore()
     store.setModel(model())
     store.setValue(0, 'Winter')
     store.run()
-    store.refreshModel(model())
+    store.setModel(model())
     expect(store.getResult()).not.toBeNull()
   })
 })
