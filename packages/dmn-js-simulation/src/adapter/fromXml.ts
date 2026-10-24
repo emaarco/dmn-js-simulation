@@ -8,8 +8,8 @@
  * FEEL is never interpreted here (see `domain/evaluateDecision.ts`).
  */
 
-import type { DecisionModel, DmnInput, DmnOutput, DmnRule, HitPolicy } from '../domain/model'
-import { collectColumnBounds, collectColumnOptions, parseOutputValueList } from './util'
+import type { DecisionModel } from '../domain/model'
+import { buildDecisionModel } from './buildDecisionModel'
 
 /** Namespace-agnostic lookup — DMN files use a default (prefix-less) namespace. */
 function byLocalName(scope: Element | Document, localName: string): Element[] {
@@ -54,54 +54,33 @@ export function parseDecisionModelFromXml(xml: string, decisionId?: string): Dec
     throw new Error('Selected decision has no decision table')
   }
 
-  const hitPolicy = (table.getAttribute('hitPolicy') || 'UNIQUE').toUpperCase() as HitPolicy
-  const aggregationAttr = (table.getAttribute('aggregation') || '').toUpperCase()
-  const aggregation = (['SUM', 'MIN', 'MAX', 'COUNT'] as const).find(a => a === aggregationAttr)
-
-  // Only the columns that belong to *this* table (skip nested inputData vars).
-  const inputEls = byLocalName(table, 'input')
-  const outputEls = byLocalName(table, 'output')
-  const ruleEls = byLocalName(table, 'rule')
-
-  const rules: DmnRule[] = ruleEls.map((rule, ri) => ({
-    id: rule.getAttribute('id') || `rule_${ri}`,
-    inputEntries: byLocalName(rule, 'inputEntry').map(entryText),
-    outputEntries: byLocalName(rule, 'outputEntry').map(entryText),
-  }))
-
-  const inputs: DmnInput[] = inputEls.map((input, ci) => {
-    const expressionEl = firstByLocalName(input, 'inputExpression')
-    const expression = entryText(expressionEl ?? undefined)
-    const label = input.getAttribute('label') || expression || `Input ${ci + 1}`
-    const typeRef = expressionEl?.getAttribute('typeRef') || 'string'
-
-    const columnCells = rules.map(r => r.inputEntries[ci] ?? '')
-    const options = collectColumnOptions(columnCells)
-    const { min, max } = collectColumnBounds(columnCells, typeRef)
-
-    return { id: input.getAttribute('id') || `input_${ci}`, label, expression, typeRef, options, min, max }
+  const attribute = (element: Element | null | undefined, name: string): string => element?.getAttribute(name) ?? ''
+  return buildDecisionModel({
+    decisionId: attribute(decision, 'id'),
+    decisionName: attribute(decision, 'name'),
+    hitPolicy: attribute(table, 'hitPolicy'),
+    aggregation: attribute(table, 'aggregation'),
+    // Only the columns that belong to *this* table (skip nested inputData vars).
+    inputs: byLocalName(table, 'input').map(input => {
+      const expressionEl = firstByLocalName(input, 'inputExpression')
+      return {
+        id: attribute(input, 'id'),
+        label: attribute(input, 'label'),
+        expression: entryText(expressionEl ?? undefined),
+        typeRef: attribute(expressionEl, 'typeRef'),
+      }
+    }),
+    outputs: byLocalName(table, 'output').map(output => ({
+      id: attribute(output, 'id'),
+      name: attribute(output, 'name'),
+      label: attribute(output, 'label'),
+      typeRef: attribute(output, 'typeRef'),
+      outputValues: entryText(firstByLocalName(output, 'outputValues') ?? undefined),
+    })),
+    rules: byLocalName(table, 'rule').map(rule => ({
+      id: attribute(rule, 'id'),
+      inputEntries: byLocalName(rule, 'inputEntry').map(entryText),
+      outputEntries: byLocalName(rule, 'outputEntry').map(entryText),
+    })),
   })
-
-  const outputs: DmnOutput[] = outputEls.map((output, ci) => {
-    const label = output.getAttribute('label') || ''
-    const name = output.getAttribute('name') || label || `Output ${ci + 1}`
-    const priorityValues = parseOutputValueList(entryText(firstByLocalName(output, 'outputValues') ?? undefined))
-    return {
-      id: output.getAttribute('id') || `output_${ci}`,
-      name,
-      label: label || name,
-      typeRef: output.getAttribute('typeRef') || 'string',
-      priorityValues,
-    }
-  })
-
-  return {
-    decisionId: decision.getAttribute('id') || '',
-    decisionName: decision.getAttribute('name') || '',
-    hitPolicy,
-    aggregation,
-    inputs,
-    outputs,
-    rules,
-  }
 }
