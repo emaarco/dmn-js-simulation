@@ -5,7 +5,6 @@
 
 import type { ModdleElement } from '../../adapter/utils/moddle'
 import type { DecisionRequirementsDiagramStore } from '../../simulation/DecisionRequirementsDiagramStore'
-import { escapeHtml } from '../../ui/utils/escapeHtml'
 import { formatValue } from '../../ui/utils/formatValue'
 
 export interface Canvas {
@@ -47,10 +46,10 @@ export class DecisionResultOverlays {
       if (!element) continue
       this.canvas.addMarker(element, FIRED_MARKER)
       this.markedIds.push(element.id)
-      this.overlays.add(element, OVERLAY_TYPE, {
-        position: { bottom: -6, left: 0 },
-        html: `<div class="dmn-sim-badge">${escapeHtml(formatValue(result.results[decisionId].value))}</div>`,
-      })
+      const badge = document.createElement('div')
+      badge.className = 'dmn-sim-badge'
+      badge.textContent = formatValue(result.results[decisionId].value)
+      this.overlays.add(element, OVERLAY_TYPE, { position: { bottom: -6, left: 0 }, html: badge })
     }
   }
 
