@@ -36,13 +36,8 @@ export class RuleRowHighlighter {
       this.scheduled = undefined
       this.apply()
     }
-    if (typeof requestAnimationFrame === 'function') {
-      const id = requestAnimationFrame(apply)
-      this.scheduled = { cancel: () => cancelAnimationFrame(id) }
-    } else {
-      const id = setTimeout(apply, 0)
-      this.scheduled = { cancel: () => clearTimeout(id) }
-    }
+    const id = requestAnimationFrame(apply)
+    this.scheduled = { cancel: () => cancelAnimationFrame(id) }
   }
 
   dispose(): void {
