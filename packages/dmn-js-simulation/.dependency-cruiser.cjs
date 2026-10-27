@@ -66,7 +66,7 @@ module.exports = {
     tsPreCompilationDeps: true,
     tsConfig: { fileName: 'tsconfig.json' },
     enhancedResolveOptions: {
-      extensions: ['.ts', '.tsx', '.js'],
+      extensions: ['.ts', '.js'],
     },
   },
 }

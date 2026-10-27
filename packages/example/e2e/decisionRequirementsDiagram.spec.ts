@@ -20,21 +20,23 @@ test('renders a DRD input panel with a field per input data', async ({ page }) =
 })
 
 test('centers the DRD diagram in the viewport (not over-zoomed)', async ({ page }) => {
-  const box = await page.evaluate(() => {
-    const canvas = (
-      window as unknown as { __modeler: { getActiveViewer(): { get(n: string): { viewbox(): any } } } }
-    ).__modeler
-      .getActiveViewer()
-      .get('canvas')
-    const v = canvas.viewbox()
-    return {
-      scale: v.scale,
-      dx: Math.abs(v.inner.x + v.inner.width / 2 - (v.x + v.width / 2)),
-      dy: Math.abs(v.inner.y + v.inner.height / 2 - (v.y + v.height / 2)),
-    }
-  })
+  const viewbox = () =>
+    page.evaluate(() => {
+      const canvas = (
+        window as unknown as { __modeler: { getActiveViewer(): { get(n: string): { viewbox(): any } } } }
+      ).__modeler
+        .getActiveViewer()
+        .get('canvas')
+      const v = canvas.viewbox()
+      return {
+        scale: v.scale,
+        dx: Math.abs(v.inner.x + v.inner.width / 2 - (v.x + v.width / 2)),
+        dy: Math.abs(v.inner.y + v.inner.height / 2 - (v.y + v.height / 2)),
+      }
+    })
+  await expect.poll(async () => (await viewbox()).dx).toBeLessThan(5)
+  const box = await viewbox()
   expect(box.scale).toBeLessThanOrEqual(1)
-  expect(box.dx).toBeLessThan(5)
   expect(box.dy).toBeLessThan(5)
 })
 

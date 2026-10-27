@@ -27,7 +27,7 @@ export class Editor {
   /** Import DMN XML and open the DRD view by default (the table is a drill-in). */
   async importAndOpen(xml: string): Promise<void> {
     await this.modeler.importXML(xml)
-    const views = this.views()
+    const views = this.modeler.getViews()
     const drd = views.find(v => v.type === 'drd')
     const table = views.find(v => v.type === 'decisionTable')
     if (drd) await this.modeler.open(drd)
@@ -36,7 +36,7 @@ export class Editor {
 
   /** Open a decision-table view by decision id (used by the drill-in E2E). */
   openDecisionTable(decisionId: string): void {
-    const view = this.views().find(v => v.type === 'decisionTable' && v.element.id === decisionId)
+    const view = this.modeler.getViews().find(v => v.type === 'decisionTable' && v.element.id === decisionId)
     if (view) void this.modeler.open(view)
   }
 
@@ -58,20 +58,12 @@ export class Editor {
     // Each view has its own command stack, so subscribe once per viewer.
     const listenedViewers = new WeakSet<Viewer>()
     this.modeler.on('views.changed', () => {
-      const viewer = this.activeViewer()
+      const viewer = this.modeler.getActiveViewer()
       if (viewer && !listenedViewers.has(viewer)) {
         listenedViewers.add(viewer)
         viewer.on('commandStack.changed', listener)
       }
     })
-  }
-
-  private views(): View[] {
-    return this.modeler.getViews()
-  }
-
-  private activeViewer(): Viewer | undefined {
-    return this.modeler.getActiveViewer()
   }
 
   /**
@@ -80,12 +72,8 @@ export class Editor {
    * diagram past 100 % — so it sits centered at a natural size.
    */
   private centerActiveDiagram(): void {
-    const raf =
-      typeof requestAnimationFrame === 'function'
-        ? requestAnimationFrame
-        : (cb: FrameRequestCallback) => setTimeout(() => cb(0), 0)
-    raf(() => {
-      const canvas = this.activeViewer()?.get('canvas') as
+    requestAnimationFrame(() => {
+      const canvas = this.modeler.getActiveViewer()?.get('canvas') as
         { zoom(scale?: string | number, center?: string): number } | undefined
       if (!canvas) return
       canvas.zoom('fit-viewport', 'auto')
