@@ -1,5 +1,4 @@
 import { cpSync, mkdirSync } from 'node:fs'
-import commonjs from '@rollup/plugin-commonjs'
 import resolve from '@rollup/plugin-node-resolve'
 import typescript from '@rollup/plugin-typescript'
 
@@ -46,7 +45,6 @@ export default {
   ],
   plugins: [
     resolve({ browser: true, extensions: ['.ts', '.tsx', '.js', '.mjs'] }),
-    commonjs(),
     typescript({ tsconfig: './tsconfig.build.json', outDir: 'dist', declaration: true, declarationDir: 'dist' }),
     copyStyles,
   ],
