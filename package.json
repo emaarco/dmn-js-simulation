@@ -27,8 +27,8 @@
     "format:check": "prettier --check ."
   },
   "devDependencies": {
-    "knip": "6.43.0",
-    "oxlint": "1.90.0",
+    "knip": "6.44.1",
+    "oxlint": "1.91.0",
     "prettier": "3.9.10"
   }
 }
