@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/emaarco/dmn-js-simulation/compare/v0.4.0...v0.4.1) (2026-11-11)
+
+
+### Bug Fixes
+
+* **deps:** bump the npm-minor-patch group with 5 updates ([#79](https://github.com/emaarco/dmn-js-simulation/issues/79)) ([21f980d](https://github.com/emaarco/dmn-js-simulation/commit/21f980de6621bb3bf7028e14308c5b7f3b4d2066))
+
 ## [0.4.0](https://github.com/emaarco/dmn-js-simulation/compare/v0.3.2...v0.4.0) (2026-10-24)
 
 
