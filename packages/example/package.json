@@ -11,15 +11,13 @@
     "test:e2e": "playwright test",
     "typecheck": "tsc --noEmit"
   },
-  "dependencies": {
-    "@emaarco/dmn-js-simulation": "*",
-    "dmn-js": "18.0.2"
-  },
   "devDependencies": {
+    "@emaarco/dmn-js-simulation": "*",
     "@fontsource-variable/geist": "5.3.0",
     "@fontsource-variable/geist-mono": "5.3.0",
     "@playwright/test": "1.65.0",
     "@types/node": "26.6.6",
+    "dmn-js": "18.0.2",
     "typescript": "6.0.3",
     "vite": "8.3.6"
   }
