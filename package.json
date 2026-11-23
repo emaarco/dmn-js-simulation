@@ -28,7 +28,7 @@
   },
   "devDependencies": {
     "knip": "6.45.1",
-    "oxlint": "1.93.0",
-    "prettier": "3.9.10"
+    "oxlint": "1.94.0",
+    "prettier": "3.10.1"
   }
 }
