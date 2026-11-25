@@ -17,6 +17,12 @@ updates:
       semver-major-days: 14
       semver-minor-days: 5
       semver-patch-days: 3
+    # dmn-js renders with inferno 5 (`inferno ~5.6.3`); a newer major breaks the DRD and simulation pages.
+    ignore:
+      - dependency-name: inferno
+        update-types: ['version-update:semver-major']
+      - dependency-name: inferno-create-element
+        update-types: ['version-update:semver-major']
     groups:
       npm-minor-patch:
         applies-to: version-updates
